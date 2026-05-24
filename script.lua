@@ -1,12 +1,10 @@
---// ADVANCED SECRET FINDER
---// Auto Refresh + Clear History + Join Button
+--// REAL BRAINROT FINDER + AUTO ESCAPE
 
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
-local PlaceId = game.PlaceId
 
 --========================
 -- BRAINROTS
@@ -78,13 +76,6 @@ local SecretKeywords = {
 }
 
 --========================
--- DATA
---========================
-
-local SavedServers = {}
-local Cards = {}
-
---========================
 -- GUI
 --========================
 
@@ -94,10 +85,9 @@ gui.ResetOnSpawn = false
 
 local main = Instance.new("Frame")
 main.Parent = gui
-main.Size = UDim2.new(0,420,0,360)
-main.Position = UDim2.new(0.02,0,0.15,0)
+main.Size = UDim2.new(0,420,0,340)
+main.Position = UDim2.new(0.02,0,0.18,0)
 main.BackgroundColor3 = Color3.fromRGB(15,15,15)
-main.BorderSizePixel = 0
 
 Instance.new("UICorner",main)
 
@@ -105,44 +95,17 @@ local title = Instance.new("TextLabel")
 title.Parent = main
 title.Size = UDim2.new(1,0,0,40)
 title.BackgroundTransparency = 1
-title.Text = "🔥 ADVANCED SECRET FINDER"
+title.Text = "🔥 REAL BRAINROT FINDER"
 title.TextScaled = true
 title.Font = Enum.Font.GothamBold
 title.TextColor3 = Color3.fromRGB(255,170,0)
 
--- REFRESH BUTTON
-local refresh = Instance.new("TextButton")
-refresh.Parent = main
-refresh.Size = UDim2.new(0,120,0,35)
-refresh.Position = UDim2.new(0.03,0,0.12,0)
-refresh.Text = "🔄 REFRESH"
-refresh.Font = Enum.Font.GothamBold
-refresh.TextScaled = true
-refresh.BackgroundColor3 = Color3.fromRGB(0,170,255)
-refresh.TextColor3 = Color3.new(1,1,1)
-
-Instance.new("UICorner",refresh)
-
--- CLEAR BUTTON
-local clear = Instance.new("TextButton")
-clear.Parent = main
-clear.Size = UDim2.new(0,120,0,35)
-clear.Position = UDim2.new(0.35,0,0.12,0)
-clear.Text = "🗑 CLEAR"
-clear.Font = Enum.Font.GothamBold
-clear.TextScaled = true
-clear.BackgroundColor3 = Color3.fromRGB(255,70,70)
-clear.TextColor3 = Color3.new(1,1,1)
-
-Instance.new("UICorner",clear)
-
 local scrolling = Instance.new("ScrollingFrame")
 scrolling.Parent = main
-scrolling.Position = UDim2.new(0,10,0,90)
-scrolling.Size = UDim2.new(1,-20,1,-100)
-scrolling.CanvasSize = UDim2.new(0,0,0,0)
+scrolling.Position = UDim2.new(0,10,0,50)
+scrolling.Size = UDim2.new(1,-20,1,-60)
 scrolling.BackgroundTransparency = 1
-scrolling.BorderSizePixel = 0
+scrolling.CanvasSize = UDim2.new(0,0,0,0)
 
 local layout = Instance.new("UIListLayout")
 layout.Parent = scrolling
@@ -165,10 +128,43 @@ local function PlaySound()
 end
 
 --========================
--- ADD CARD
+-- ESP
 --========================
 
-local function AddCard(serverId,item)
+local function MarkPlayer(plr)
+
+	if not plr.Character then
+		return
+	end
+
+	local root = plr.Character:FindFirstChild("HumanoidRootPart")
+
+	if root and not root:FindFirstChild("SecretESP") then
+
+		local bill = Instance.new("BillboardGui")
+		bill.Name = "SecretESP"
+		bill.Parent = root
+		bill.Size = UDim2.new(0,200,0,50)
+		bill.StudsOffset = Vector3.new(0,5,0)
+		bill.AlwaysOnTop = true
+
+		local txt = Instance.new("TextLabel")
+		txt.Parent = bill
+		txt.Size = UDim2.new(1,0,1,0)
+		txt.BackgroundTransparency = 1
+		txt.Text = "⭐ SECRET PLAYER"
+		txt.TextScaled = true
+		txt.Font = Enum.Font.GothamBold
+		txt.TextColor3 = Color3.fromRGB(255,255,0)
+		txt.TextStrokeTransparency = 0
+	end
+end
+
+--========================
+-- CARD
+--========================
+
+local function AddCard(playerName,itemName)
 
 	local holder = Instance.new("Frame")
 	holder.Parent = scrolling
@@ -176,8 +172,6 @@ local function AddCard(serverId,item)
 	holder.BackgroundColor3 = Color3.fromRGB(30,30,30)
 
 	Instance.new("UICorner",holder)
-
-	table.insert(Cards,holder)
 
 	local txt = Instance.new("TextLabel")
 	txt.Parent = holder
@@ -190,28 +184,32 @@ local function AddCard(serverId,item)
 	txt.TextXAlignment = Enum.TextXAlignment.Left
 
 	txt.Text =
-	"💎 "..item..
-	"\n🌍 "..string.sub(serverId,1,8)
+	"👤 "..playerName..
+	"\n💎 "..itemName
 
-	local join = Instance.new("TextButton")
-	join.Parent = holder
-	join.Size = UDim2.new(0.25,0,0.55,0)
-	join.Position = UDim2.new(0.72,0,0.22,0)
-	join.Text = "JOIN"
-	join.TextScaled = true
-	join.Font = Enum.Font.GothamBold
-	join.BackgroundColor3 = Color3.fromRGB(0,170,255)
-	join.TextColor3 = Color3.new(1,1,1)
+	local tp = Instance.new("TextButton")
+	tp.Parent = holder
+	tp.Size = UDim2.new(0.25,0,0.55,0)
+	tp.Position = UDim2.new(0.72,0,0.22,0)
+	tp.Text = "TP"
+	tp.TextScaled = true
+	tp.Font = Enum.Font.GothamBold
+	tp.BackgroundColor3 = Color3.fromRGB(0,170,255)
+	tp.TextColor3 = Color3.new(1,1,1)
 
-	Instance.new("UICorner",join)
+	Instance.new("UICorner",tp)
 
-	join.MouseButton1Click:Connect(function()
+	tp.MouseButton1Click:Connect(function()
 
-		TeleportService:TeleportToPlaceInstance(
-			PlaceId,
-			serverId,
-			LocalPlayer
-		)
+		local target = Players:FindFirstChild(playerName)
+
+		if target
+		and target.Character
+		and target.Character:FindFirstChild("HumanoidRootPart") then
+
+			LocalPlayer.Character.HumanoidRootPart.CFrame =
+				target.Character.HumanoidRootPart.CFrame + Vector3.new(3,0,0)
+		end
 	end)
 
 	scrolling.CanvasSize =
@@ -219,72 +217,132 @@ local function AddCard(serverId,item)
 end
 
 --========================
--- CLEAR HISTORY
+-- DETECTOR
 --========================
 
-clear.MouseButton1Click:Connect(function()
+local detected = {}
 
-	for _,v in pairs(Cards) do
-		v:Destroy()
+local function ScanPlayer(plr)
+
+	if detected[plr] then
+		return
 	end
 
-	Cards = {}
-	SavedServers = {}
+	local function check(container)
 
-	scrolling.CanvasSize = UDim2.new(0,0,0,0)
-end)
+		for _,obj in pairs(container:GetDescendants()) do
 
---========================
--- SCAN SERVERS
---========================
+			for _,keyword in pairs(SecretKeywords) do
 
-local function Scan()
+				if string.find(
+					string.lower(obj.Name),
+					string.lower(keyword)
+				) then
 
-	local url =
-	"https://games.roblox.com/v1/games/"..
-	PlaceId..
-	"/servers/Public?sortOrder=Asc&limit=100"
+					AddCard(plr.Name,keyword)
 
-	local response = game:HttpGet(url)
+					MarkPlayer(plr)
 
-	local data = HttpService:JSONDecode(response)
+					PlaySound()
 
-	for _,server in pairs(data.data) do
+					detected[plr] = true
 
-		if not SavedServers[server.id]
-		and server.id ~= game.JobId then
+					print("FOUND:",plr.Name,keyword)
 
-			SavedServers[server.id] = true
+					break
+				end
+			end
+		end
+	end
 
-			local randomItem =
-			SecretKeywords[
-				math.random(1,#SecretKeywords)
-			]
+	if plr.Character then
+		check(plr.Character)
+	end
 
-			AddCard(server.id,randomItem)
+	if plr:FindFirstChild("Backpack") then
+		check(plr.Backpack)
+	end
+end
 
-			PlaySound()
+local function ScanAll()
 
-			wait(0.1)
+	for _,plr in pairs(Players:GetPlayers()) do
+
+		if plr ~= LocalPlayer then
+
+			pcall(function()
+				ScanPlayer(plr)
+			end)
 		end
 	end
 end
 
 --========================
--- BUTTON REFRESH
+-- AUTO ESCAPE
 --========================
 
-refresh.MouseButton1Click:Connect(function()
-	Scan()
-end)
+local function HasRare()
 
--- AUTO UPDATE
+	for _,obj in pairs(LocalPlayer:GetDescendants()) do
+
+		for _,keyword in pairs(SecretKeywords) do
+
+			if string.find(
+				string.lower(obj.Name),
+				string.lower(keyword)
+			) then
+
+				return true
+			end
+		end
+	end
+
+	return false
+end
+
 task.spawn(function()
 
 	while true do
-		wait(30)
-		Scan()
+
+		wait(2)
+
+		if HasRare() then
+
+			game.StarterGui:SetCore("SendNotification",{
+				Title = "🔥 BRAINROT OBTENIDO",
+				Text = "Escapando...",
+				Duration = 5
+			})
+
+			wait(1)
+
+			local servers =
+				HttpService:JSONDecode(
+					game:HttpGet(
+						"https://games.roblox.com/v1/games/"..
+						game.PlaceId..
+						"/servers/Public?sortOrder=Asc&limit=100"
+					)
+				)
+
+			for _,server in pairs(servers.data) do
+
+				if server.id ~= game.JobId then
+
+					TeleportService:TeleportToPlaceInstance(
+						game.PlaceId,
+						server.id,
+						LocalPlayer
+					)
+
+					break
+				end
+			end
+		end
 	end
 end)
 
-Scan()
+while true do
+	wait(10)
+	ScanAll()
+end
