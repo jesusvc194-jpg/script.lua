@@ -1,5 +1,5 @@
 --// ULTIMATE SECRET FINDER
---// Garama / Ketupak / Dragon / OG Finder
+--// Sound + Base Marker + Save Servers + Ignore Duplicates
 
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
@@ -13,23 +13,16 @@ local PlaceId = game.PlaceId
 --========================
 
 local SecretKeywords = {
-
-	"Garama",
-	"Ketupak",
-	"Dragon",
-	"OG",
+	"Secret Brainrot",
+	"Omega Brainrot",
+	"Void Brainrot",
+	"Galaxy Brainrot",
+	"Admin Brainrot",
 	"La Grande Combinasion",
-	"DJ Panda",
 	"Golden Noob",
-	"Noobini Pizzanini",
-	"Tralalero",
-	"Bananita",
-	"Secret",
+	"DJ Panda",
 	"Mythic",
-	"Exclusive",
-	"Admin",
-	"Void",
-	"Galaxy"
+	"Exclusive"
 }
 
 --========================
@@ -95,7 +88,7 @@ local function PlaySound()
 end
 
 --========================
--- PLAYER MARKER
+-- BASE MARKER
 --========================
 
 local function MarkPlayer(player)
@@ -128,7 +121,7 @@ local function MarkPlayer(player)
 end
 
 --========================
--- ADD SERVER CARD
+-- ADD SERVER
 --========================
 
 local function AddServer(serverId,playerName,itemName)
@@ -199,6 +192,7 @@ local function ScanServers()
 
 	for _,server in pairs(data.data) do
 
+		-- IGNORE DUPLICATES
 		if not ScannedServers[server.id]
 		and server.id ~= game.JobId then
 
@@ -209,6 +203,7 @@ local function ScanServers()
 					math.random(1,#SecretKeywords)
 				]
 
+			-- SAVE GOOD SERVER
 			table.insert(SavedServers,server.id)
 
 			AddServer(
@@ -217,6 +212,7 @@ local function ScanServers()
 				randomItem
 			)
 
+			-- SOUND
 			PlaySound()
 
 			print("GOOD SERVER:",server.id)
