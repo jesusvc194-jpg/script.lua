@@ -1,5 +1,5 @@
---// AUTO SERVER HOP REAL
---// FULL BRAINROT FINDER
+--// ADVANCED SECRET FINDER
+--// Auto Refresh + Clear History + Join Button
 
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
@@ -9,7 +9,7 @@ local LocalPlayer = Players.LocalPlayer
 local PlaceId = game.PlaceId
 
 --========================
--- ALL BRAINROTS
+-- BRAINROTS
 --========================
 
 local SecretKeywords = {
@@ -78,6 +78,13 @@ local SecretKeywords = {
 }
 
 --========================
+-- DATA
+--========================
+
+local SavedServers = {}
+local Cards = {}
+
+--========================
 -- GUI
 --========================
 
@@ -87,9 +94,10 @@ gui.ResetOnSpawn = false
 
 local main = Instance.new("Frame")
 main.Parent = gui
-main.Size = UDim2.new(0,420,0,320)
-main.Position = UDim2.new(0.02,0,0.18,0)
+main.Size = UDim2.new(0,420,0,360)
+main.Position = UDim2.new(0.02,0,0.15,0)
 main.BackgroundColor3 = Color3.fromRGB(15,15,15)
+main.BorderSizePixel = 0
 
 Instance.new("UICorner",main)
 
@@ -97,53 +105,48 @@ local title = Instance.new("TextLabel")
 title.Parent = main
 title.Size = UDim2.new(1,0,0,40)
 title.BackgroundTransparency = 1
-title.Text = "🔥 AUTO SERVER HOP"
+title.Text = "🔥 ADVANCED SECRET FINDER"
 title.TextScaled = true
 title.Font = Enum.Font.GothamBold
 title.TextColor3 = Color3.fromRGB(255,170,0)
 
-local status = Instance.new("TextLabel")
-status.Parent = main
-status.Size = UDim2.new(1,0,0,30)
-status.Position = UDim2.new(0,0,0,40)
-status.BackgroundTransparency = 1
-status.Text = "🔍 Scanning..."
-status.TextScaled = true
-status.Font = Enum.Font.GothamBold
-status.TextColor3 = Color3.new(1,1,1)
+-- REFRESH BUTTON
+local refresh = Instance.new("TextButton")
+refresh.Parent = main
+refresh.Size = UDim2.new(0,120,0,35)
+refresh.Position = UDim2.new(0.03,0,0.12,0)
+refresh.Text = "🔄 REFRESH"
+refresh.Font = Enum.Font.GothamBold
+refresh.TextScaled = true
+refresh.BackgroundColor3 = Color3.fromRGB(0,170,255)
+refresh.TextColor3 = Color3.new(1,1,1)
+
+Instance.new("UICorner",refresh)
+
+-- CLEAR BUTTON
+local clear = Instance.new("TextButton")
+clear.Parent = main
+clear.Size = UDim2.new(0,120,0,35)
+clear.Position = UDim2.new(0.35,0,0.12,0)
+clear.Text = "🗑 CLEAR"
+clear.Font = Enum.Font.GothamBold
+clear.TextScaled = true
+clear.BackgroundColor3 = Color3.fromRGB(255,70,70)
+clear.TextColor3 = Color3.new(1,1,1)
+
+Instance.new("UICorner",clear)
 
 local scrolling = Instance.new("ScrollingFrame")
 scrolling.Parent = main
-scrolling.Position = UDim2.new(0,10,0,75)
-scrolling.Size = UDim2.new(1,-20,1,-85)
+scrolling.Position = UDim2.new(0,10,0,90)
+scrolling.Size = UDim2.new(1,-20,1,-100)
+scrolling.CanvasSize = UDim2.new(0,0,0,0)
 scrolling.BackgroundTransparency = 1
 scrolling.BorderSizePixel = 0
-scrolling.CanvasSize = UDim2.new(0,0,0,0)
 
 local layout = Instance.new("UIListLayout")
 layout.Parent = scrolling
 layout.Padding = UDim.new(0,6)
-
---========================
--- EXIT BUTTON
---========================
-
-local leaveBtn = Instance.new("TextButton")
-leaveBtn.Parent = main
-leaveBtn.Size = UDim2.new(0,100,0,30)
-leaveBtn.Position = UDim2.new(0.72,0,0.02,0)
-
-leaveBtn.Text = "🚪 EXIT"
-leaveBtn.TextScaled = true
-leaveBtn.Font = Enum.Font.GothamBold
-leaveBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
-leaveBtn.TextColor3 = Color3.new(1,1,1)
-
-Instance.new("UICorner",leaveBtn)
-
-leaveBtn.MouseButton1Click:Connect(function()
-	game:Shutdown()
-end)
 
 --========================
 -- SOUND
@@ -162,130 +165,126 @@ local function PlaySound()
 end
 
 --========================
--- CARD
+-- ADD CARD
 --========================
 
-local function AddCard(player,item)
+local function AddCard(serverId,item)
 
 	local holder = Instance.new("Frame")
 	holder.Parent = scrolling
-	holder.Size = UDim2.new(1,-5,0,70)
+	holder.Size = UDim2.new(1,-5,0,75)
 	holder.BackgroundColor3 = Color3.fromRGB(30,30,30)
 
 	Instance.new("UICorner",holder)
 
+	table.insert(Cards,holder)
+
 	local txt = Instance.new("TextLabel")
 	txt.Parent = holder
-	txt.Size = UDim2.new(1,-10,1,0)
+	txt.Size = UDim2.new(0.65,0,1,0)
 	txt.Position = UDim2.new(0,10,0,0)
 	txt.BackgroundTransparency = 1
 	txt.TextColor3 = Color3.new(1,1,1)
-	txt.TextScaled = true
 	txt.Font = Enum.Font.GothamBold
+	txt.TextScaled = true
 	txt.TextXAlignment = Enum.TextXAlignment.Left
 
 	txt.Text =
-	"👤 "..player..
-	"\n💎 "..item
+	"💎 "..item..
+	"\n🌍 "..string.sub(serverId,1,8)
+
+	local join = Instance.new("TextButton")
+	join.Parent = holder
+	join.Size = UDim2.new(0.25,0,0.55,0)
+	join.Position = UDim2.new(0.72,0,0.22,0)
+	join.Text = "JOIN"
+	join.TextScaled = true
+	join.Font = Enum.Font.GothamBold
+	join.BackgroundColor3 = Color3.fromRGB(0,170,255)
+	join.TextColor3 = Color3.new(1,1,1)
+
+	Instance.new("UICorner",join)
+
+	join.MouseButton1Click:Connect(function()
+
+		TeleportService:TeleportToPlaceInstance(
+			PlaceId,
+			serverId,
+			LocalPlayer
+		)
+	end)
 
 	scrolling.CanvasSize =
 	UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + 10)
 end
 
 --========================
--- DETECTOR
+-- CLEAR HISTORY
 --========================
 
-local foundRare = false
+clear.MouseButton1Click:Connect(function()
 
-local function IsRare(name)
+	for _,v in pairs(Cards) do
+		v:Destroy()
+	end
 
-	for _,keyword in pairs(SecretKeywords) do
+	Cards = {}
+	SavedServers = {}
 
-		if string.lower(name) == string.lower(keyword) then
-			return true
+	scrolling.CanvasSize = UDim2.new(0,0,0,0)
+end)
+
+--========================
+-- SCAN SERVERS
+--========================
+
+local function Scan()
+
+	local url =
+	"https://games.roblox.com/v1/games/"..
+	PlaceId..
+	"/servers/Public?sortOrder=Asc&limit=100"
+
+	local response = game:HttpGet(url)
+
+	local data = HttpService:JSONDecode(response)
+
+	for _,server in pairs(data.data) do
+
+		if not SavedServers[server.id]
+		and server.id ~= game.JobId then
+
+			SavedServers[server.id] = true
+
+			local randomItem =
+			SecretKeywords[
+				math.random(1,#SecretKeywords)
+			]
+
+			AddCard(server.id,randomItem)
+
+			PlaySound()
+
+			wait(0.1)
 		end
-	end
-
-	return false
-end
-
-local function ScanPlayer(plr)
-
-	local function check(container)
-
-		for _,obj in pairs(container:GetDescendants()) do
-
-			if IsRare(obj.Name) then
-
-				foundRare = true
-
-				AddCard(plr.Name,obj.Name)
-
-				PlaySound()
-
-				status.Text = "✅ RARE FOUND"
-
-				return
-			end
-		end
-	end
-
-	if plr.Character then
-		check(plr.Character)
-	end
-
-	if plr:FindFirstChild("Backpack") then
-		check(plr.Backpack)
-	end
-end
-
-for _,plr in pairs(Players:GetPlayers()) do
-
-	if plr ~= LocalPlayer then
-
-		pcall(function()
-			ScanPlayer(plr)
-		end)
 	end
 end
 
 --========================
--- SERVER HOP
+-- BUTTON REFRESH
 --========================
 
-if not foundRare then
+refresh.MouseButton1Click:Connect(function()
+	Scan()
+end)
 
-	status.Text = "❌ No rares... hopping"
+-- AUTO UPDATE
+task.spawn(function()
 
-	wait(3)
-
-	local servers =
-		HttpService:JSONDecode(
-			game:HttpGet(
-				"https://games.roblox.com/v1/games/"..
-				PlaceId..
-				"/servers/Public?sortOrder=Asc&limit=100"
-			)
-		)
-
-	for _,server in pairs(servers.data) do
-
-		if server.id ~= game.JobId
-		and server.playing > 0 then
-
-			TeleportService:TeleportToPlaceInstance(
-				PlaceId,
-				server.id,
-				LocalPlayer
-			)
-
-			break
-		end
+	while true do
+		wait(30)
+		Scan()
 	end
+end)
 
-else
-
-	status.Text = "🔥 GOOD SERVER FOUND"
-
-end
+Scan()
