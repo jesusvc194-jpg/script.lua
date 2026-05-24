@@ -1,13 +1,15 @@
---// REAL BRAINROT FINDER + AUTO ESCAPE
+--// AUTO SERVER HOP REAL
+--// FULL BRAINROT FINDER
 
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
+local PlaceId = game.PlaceId
 
 --========================
--- BRAINROTS
+-- ALL BRAINROTS
 --========================
 
 local SecretKeywords = {
@@ -85,7 +87,7 @@ gui.ResetOnSpawn = false
 
 local main = Instance.new("Frame")
 main.Parent = gui
-main.Size = UDim2.new(0,420,0,340)
+main.Size = UDim2.new(0,420,0,320)
 main.Position = UDim2.new(0.02,0,0.18,0)
 main.BackgroundColor3 = Color3.fromRGB(15,15,15)
 
@@ -95,21 +97,53 @@ local title = Instance.new("TextLabel")
 title.Parent = main
 title.Size = UDim2.new(1,0,0,40)
 title.BackgroundTransparency = 1
-title.Text = "🔥 REAL BRAINROT FINDER"
+title.Text = "🔥 AUTO SERVER HOP"
 title.TextScaled = true
 title.Font = Enum.Font.GothamBold
 title.TextColor3 = Color3.fromRGB(255,170,0)
 
+local status = Instance.new("TextLabel")
+status.Parent = main
+status.Size = UDim2.new(1,0,0,30)
+status.Position = UDim2.new(0,0,0,40)
+status.BackgroundTransparency = 1
+status.Text = "🔍 Scanning..."
+status.TextScaled = true
+status.Font = Enum.Font.GothamBold
+status.TextColor3 = Color3.new(1,1,1)
+
 local scrolling = Instance.new("ScrollingFrame")
 scrolling.Parent = main
-scrolling.Position = UDim2.new(0,10,0,50)
-scrolling.Size = UDim2.new(1,-20,1,-60)
+scrolling.Position = UDim2.new(0,10,0,75)
+scrolling.Size = UDim2.new(1,-20,1,-85)
 scrolling.BackgroundTransparency = 1
+scrolling.BorderSizePixel = 0
 scrolling.CanvasSize = UDim2.new(0,0,0,0)
 
 local layout = Instance.new("UIListLayout")
 layout.Parent = scrolling
 layout.Padding = UDim.new(0,6)
+
+--========================
+-- EXIT BUTTON
+--========================
+
+local leaveBtn = Instance.new("TextButton")
+leaveBtn.Parent = main
+leaveBtn.Size = UDim2.new(0,100,0,30)
+leaveBtn.Position = UDim2.new(0.72,0,0.02,0)
+
+leaveBtn.Text = "🚪 EXIT"
+leaveBtn.TextScaled = true
+leaveBtn.Font = Enum.Font.GothamBold
+leaveBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
+leaveBtn.TextColor3 = Color3.new(1,1,1)
+
+Instance.new("UICorner",leaveBtn)
+
+leaveBtn.MouseButton1Click:Connect(function()
+	game:Shutdown()
+end)
 
 --========================
 -- SOUND
@@ -128,89 +162,31 @@ local function PlaySound()
 end
 
 --========================
--- ESP
---========================
-
-local function MarkPlayer(plr)
-
-	if not plr.Character then
-		return
-	end
-
-	local root = plr.Character:FindFirstChild("HumanoidRootPart")
-
-	if root and not root:FindFirstChild("SecretESP") then
-
-		local bill = Instance.new("BillboardGui")
-		bill.Name = "SecretESP"
-		bill.Parent = root
-		bill.Size = UDim2.new(0,200,0,50)
-		bill.StudsOffset = Vector3.new(0,5,0)
-		bill.AlwaysOnTop = true
-
-		local txt = Instance.new("TextLabel")
-		txt.Parent = bill
-		txt.Size = UDim2.new(1,0,1,0)
-		txt.BackgroundTransparency = 1
-		txt.Text = "⭐ SECRET PLAYER"
-		txt.TextScaled = true
-		txt.Font = Enum.Font.GothamBold
-		txt.TextColor3 = Color3.fromRGB(255,255,0)
-		txt.TextStrokeTransparency = 0
-	end
-end
-
---========================
 -- CARD
 --========================
 
-local function AddCard(playerName,itemName)
+local function AddCard(player,item)
 
 	local holder = Instance.new("Frame")
 	holder.Parent = scrolling
-	holder.Size = UDim2.new(1,-5,0,75)
+	holder.Size = UDim2.new(1,-5,0,70)
 	holder.BackgroundColor3 = Color3.fromRGB(30,30,30)
 
 	Instance.new("UICorner",holder)
 
 	local txt = Instance.new("TextLabel")
 	txt.Parent = holder
-	txt.Size = UDim2.new(0.65,0,1,0)
+	txt.Size = UDim2.new(1,-10,1,0)
 	txt.Position = UDim2.new(0,10,0,0)
 	txt.BackgroundTransparency = 1
 	txt.TextColor3 = Color3.new(1,1,1)
-	txt.Font = Enum.Font.GothamBold
 	txt.TextScaled = true
+	txt.Font = Enum.Font.GothamBold
 	txt.TextXAlignment = Enum.TextXAlignment.Left
 
 	txt.Text =
-	"👤 "..playerName..
-	"\n💎 "..itemName
-
-	local tp = Instance.new("TextButton")
-	tp.Parent = holder
-	tp.Size = UDim2.new(0.25,0,0.55,0)
-	tp.Position = UDim2.new(0.72,0,0.22,0)
-	tp.Text = "TP"
-	tp.TextScaled = true
-	tp.Font = Enum.Font.GothamBold
-	tp.BackgroundColor3 = Color3.fromRGB(0,170,255)
-	tp.TextColor3 = Color3.new(1,1,1)
-
-	Instance.new("UICorner",tp)
-
-	tp.MouseButton1Click:Connect(function()
-
-		local target = Players:FindFirstChild(playerName)
-
-		if target
-		and target.Character
-		and target.Character:FindFirstChild("HumanoidRootPart") then
-
-			LocalPlayer.Character.HumanoidRootPart.CFrame =
-				target.Character.HumanoidRootPart.CFrame + Vector3.new(3,0,0)
-		end
-	end)
+	"👤 "..player..
+	"\n💎 "..item
 
 	scrolling.CanvasSize =
 	UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + 10)
@@ -220,37 +196,37 @@ end
 -- DETECTOR
 --========================
 
-local detected = {}
+local foundRare = false
+
+local function IsRare(name)
+
+	for _,keyword in pairs(SecretKeywords) do
+
+		if string.lower(name) == string.lower(keyword) then
+			return true
+		end
+	end
+
+	return false
+end
 
 local function ScanPlayer(plr)
-
-	if detected[plr] then
-		return
-	end
 
 	local function check(container)
 
 		for _,obj in pairs(container:GetDescendants()) do
 
-			for _,keyword in pairs(SecretKeywords) do
+			if IsRare(obj.Name) then
 
-				if string.find(
-					string.lower(obj.Name),
-					string.lower(keyword)
-				) then
+				foundRare = true
 
-					AddCard(plr.Name,keyword)
+				AddCard(plr.Name,obj.Name)
 
-					MarkPlayer(plr)
+				PlaySound()
 
-					PlaySound()
+				status.Text = "✅ RARE FOUND"
 
-					detected[plr] = true
-
-					print("FOUND:",plr.Name,keyword)
-
-					break
-				end
+				return
 			end
 		end
 	end
@@ -264,85 +240,52 @@ local function ScanPlayer(plr)
 	end
 end
 
-local function ScanAll()
+for _,plr in pairs(Players:GetPlayers()) do
 
-	for _,plr in pairs(Players:GetPlayers()) do
+	if plr ~= LocalPlayer then
 
-		if plr ~= LocalPlayer then
-
-			pcall(function()
-				ScanPlayer(plr)
-			end)
-		end
+		pcall(function()
+			ScanPlayer(plr)
+		end)
 	end
 end
 
 --========================
--- AUTO ESCAPE
+-- SERVER HOP
 --========================
 
-local function HasRare()
+if not foundRare then
 
-	for _,obj in pairs(LocalPlayer:GetDescendants()) do
+	status.Text = "❌ No rares... hopping"
 
-		for _,keyword in pairs(SecretKeywords) do
+	wait(3)
 
-			if string.find(
-				string.lower(obj.Name),
-				string.lower(keyword)
-			) then
+	local servers =
+		HttpService:JSONDecode(
+			game:HttpGet(
+				"https://games.roblox.com/v1/games/"..
+				PlaceId..
+				"/servers/Public?sortOrder=Asc&limit=100"
+			)
+		)
 
-				return true
-			end
+	for _,server in pairs(servers.data) do
+
+		if server.id ~= game.JobId
+		and server.playing > 0 then
+
+			TeleportService:TeleportToPlaceInstance(
+				PlaceId,
+				server.id,
+				LocalPlayer
+			)
+
+			break
 		end
 	end
 
-	return false
-end
+else
 
-task.spawn(function()
+	status.Text = "🔥 GOOD SERVER FOUND"
 
-	while true do
-
-		wait(2)
-
-		if HasRare() then
-
-			game.StarterGui:SetCore("SendNotification",{
-				Title = "🔥 BRAINROT OBTENIDO",
-				Text = "Escapando...",
-				Duration = 5
-			})
-
-			wait(1)
-
-			local servers =
-				HttpService:JSONDecode(
-					game:HttpGet(
-						"https://games.roblox.com/v1/games/"..
-						game.PlaceId..
-						"/servers/Public?sortOrder=Asc&limit=100"
-					)
-				)
-
-			for _,server in pairs(servers.data) do
-
-				if server.id ~= game.JobId then
-
-					TeleportService:TeleportToPlaceInstance(
-						game.PlaceId,
-						server.id,
-						LocalPlayer
-					)
-
-					break
-				end
-			end
-		end
-	end
-end)
-
-while true do
-	wait(10)
-	ScanAll()
 end
