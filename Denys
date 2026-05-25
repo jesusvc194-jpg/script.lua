@@ -1,5 +1,6 @@
---// PERSISTENT 100M+ SERVER HOPPER
---// Anti Repeat + Hop Button + Minimize + Exit
+--// DENYS - 100M+ BRAINROT FINDER
+--// AUTO HOP + ANTI REPEAT + FIX 772
+--// MINIMIZE + EXIT + HOP BUTTON
 
 if getgenv().BrainrotLoaded then
 	return
@@ -9,6 +10,7 @@ getgenv().BrainrotLoaded = true
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
+local GuiService = game:GetService("GuiService")
 
 local LocalPlayer = Players.LocalPlayer
 local PlaceId = game.PlaceId
@@ -19,12 +21,12 @@ local PlaceId = game.PlaceId
 
 if queue_on_teleport then
 	queue_on_teleport([[
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/jesusvc194-jpg/script.lua/main/Hades"))()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/jesusvc194-jpg/script.lua/main/Denys"))()
 	]])
 end
 
 --========================
--- ANTI REPEAT SERVERS
+-- ANTI REPEAT
 --========================
 
 getgenv().VisitedServers =
@@ -34,7 +36,7 @@ local VisitedServers =
 	getgenv().VisitedServers
 
 --========================
--- 100M+ BRAINROTS
+-- BRAINROTS
 --========================
 
 local SecretKeywords = {
@@ -202,7 +204,7 @@ local layout = Instance.new("UIListLayout")
 layout.Parent = scrolling
 layout.Padding = UDim.new(0,5)
 
--- MINIMIZE FUNCTION
+-- MINIMIZE
 minimizeBtn.MouseButton1Click:Connect(function()
 
 	minimized = not minimized
@@ -327,15 +329,16 @@ for _,plr in pairs(Players:GetPlayers()) do
 end
 
 --========================
--- HOP FUNCTION
+-- SERVER HOP
 --========================
 
 local function HopServer()
 
-	status.Text = "🔁 Switching server..."
+	status.Text = "🔁 Searching server..."
 
-	local servers =
-		HttpService:JSONDecode(
+	local success,servers = pcall(function()
+
+		return HttpService:JSONDecode(
 			game:HttpGet(
 				"https://games.roblox.com/v1/games/"..
 				PlaceId..
@@ -343,30 +346,84 @@ local function HopServer()
 			)
 		)
 
+	end)
+
+	if not success or not servers then
+
+		status.Text = "❌ Server list failed"
+
+		wait(2)
+
+		return HopServer()
+	end
+
 	for _,server in pairs(servers.data) do
 
+		local freeSlots =
+			server.maxPlayers - server.playing
+
 		if server.id ~= game.JobId
-		and server.playing > 0
+		and freeSlots >= 2
 		and not table.find(VisitedServers,server.id) then
 
 			table.insert(VisitedServers,server.id)
 
-			TeleportService:TeleportToPlaceInstance(
-				PlaceId,
-				server.id,
-				LocalPlayer
-			)
+			status.Text =
+				"🚀 Joining "..server.playing.."/"..server.maxPlayers
 
-			break
+			local tpSuccess = pcall(function()
+
+				TeleportService:TeleportToPlaceInstance(
+					PlaceId,
+					server.id,
+					LocalPlayer
+				)
+
+			end)
+
+			if tpSuccess then
+				break
+			else
+
+				status.Text =
+					"❌ Full server retrying..."
+
+				wait(1)
+
+				HopServer()
+
+				break
+			end
 		end
 	end
 end
+
+--========================
+-- RETRY TP FAIL
+--========================
+
+GuiService.ErrorMessageChanged:Connect(function()
+
+	wait(1)
+
+	status.Text = "🔁 Teleport failed retrying..."
+
+	HopServer()
+
+end)
+
+--========================
+-- BUTTONS
+--========================
 
 hopBtn.MouseButton1Click:Connect(function()
 	HopServer()
 end)
 
+--========================
 -- AUTO HOP
+--========================
+
 if not foundRare then
 
 	status.Text = "❌ No 100M+... hopping"
