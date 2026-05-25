@@ -1,6 +1,6 @@
---// DENYS - 100M+ BRAINROT FINDER
---// AUTO HOP + ANTI REPEAT + FIX 772
---// MINIMIZE + EXIT + HOP BUTTON
+--// DENYS - ULTIMATE 100M+ FINDER
+--// AUTO HOP + STOP + DRAG + MINIMIZE + EXIT
+--// FIX 772 + ANTI REPEAT + AUTO EXECUTE
 
 if getgenv().BrainrotLoaded then
 	return
@@ -11,6 +11,7 @@ local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 local GuiService = game:GetService("GuiService")
+local UserInputService = game:GetService("UserInputService")
 
 local LocalPlayer = Players.LocalPlayer
 local PlaceId = game.PlaceId
@@ -26,8 +27,10 @@ if queue_on_teleport then
 end
 
 --========================
--- ANTI REPEAT
+-- SETTINGS
 --========================
+
+local AutoHop = true
 
 getgenv().VisitedServers =
 	getgenv().VisitedServers or {}
@@ -118,7 +121,7 @@ local minimized = false
 
 local main = Instance.new("Frame")
 main.Parent = gui
-main.Size = UDim2.new(0,300,0,260)
+main.Size = UDim2.new(0,320,0,270)
 main.Position = UDim2.new(0.02,0,0.2,0)
 main.BackgroundColor3 = Color3.fromRGB(15,15,15)
 main.BorderSizePixel = 0
@@ -129,16 +132,30 @@ local title = Instance.new("TextLabel")
 title.Parent = main
 title.Size = UDim2.new(1,0,0,35)
 title.BackgroundTransparency = 1
-title.Text = "🔥 100M+ FINDER"
+title.Text = "🔥 DENYS FINDER"
 title.TextScaled = true
 title.Font = Enum.Font.GothamBold
 title.TextColor3 = Color3.fromRGB(255,170,0)
+
+-- STOP BUTTON
+local stopBtn = Instance.new("TextButton")
+stopBtn.Parent = main
+stopBtn.Size = UDim2.new(0,50,0,25)
+stopBtn.Position = UDim2.new(0.34,0,0.03,0)
+
+stopBtn.Text = "STOP"
+stopBtn.TextScaled = true
+stopBtn.Font = Enum.Font.GothamBold
+stopBtn.BackgroundColor3 = Color3.fromRGB(255,170,0)
+stopBtn.TextColor3 = Color3.new(1,1,1)
+
+Instance.new("UICorner",stopBtn)
 
 -- HOP BUTTON
 local hopBtn = Instance.new("TextButton")
 hopBtn.Parent = main
 hopBtn.Size = UDim2.new(0,50,0,25)
-hopBtn.Position = UDim2.new(0.55,0,0.03,0)
+hopBtn.Position = UDim2.new(0.52,0,0.03,0)
 
 hopBtn.Text = "HOP"
 hopBtn.TextScaled = true
@@ -152,7 +169,7 @@ Instance.new("UICorner",hopBtn)
 local minimizeBtn = Instance.new("TextButton")
 minimizeBtn.Parent = main
 minimizeBtn.Size = UDim2.new(0,30,0,25)
-minimizeBtn.Position = UDim2.new(0.73,0,0.03,0)
+minimizeBtn.Position = UDim2.new(0.71,0,0.03,0)
 
 minimizeBtn.Text = "-"
 minimizeBtn.TextScaled = true
@@ -166,7 +183,7 @@ Instance.new("UICorner",minimizeBtn)
 local exitBtn = Instance.new("TextButton")
 exitBtn.Parent = main
 exitBtn.Size = UDim2.new(0,55,0,25)
-exitBtn.Position = UDim2.new(0.84,0,0.03,0)
+exitBtn.Position = UDim2.new(0.82,0,0.03,0)
 
 exitBtn.Text = "EXIT"
 exitBtn.TextScaled = true
@@ -175,10 +192,6 @@ exitBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
 exitBtn.TextColor3 = Color3.new(1,1,1)
 
 Instance.new("UICorner",exitBtn)
-
-exitBtn.MouseButton1Click:Connect(function()
-	game:Shutdown()
-end)
 
 -- STATUS
 local status = Instance.new("TextLabel")
@@ -204,7 +217,27 @@ local layout = Instance.new("UIListLayout")
 layout.Parent = scrolling
 layout.Padding = UDim.new(0,5)
 
--- MINIMIZE
+--========================
+-- BUTTONS
+--========================
+
+stopBtn.MouseButton1Click:Connect(function()
+
+	AutoHop = not AutoHop
+
+	if AutoHop then
+		stopBtn.Text = "STOP"
+		status.Text = "▶ Auto Hop ON"
+	else
+		stopBtn.Text = "PLAY"
+		status.Text = "⏸ Auto Hop OFF"
+	end
+end)
+
+exitBtn.MouseButton1Click:Connect(function()
+	game:Shutdown()
+end)
+
 minimizeBtn.MouseButton1Click:Connect(function()
 
 	minimized = not minimized
@@ -213,7 +246,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
 
 		scrolling.Visible = false
 		status.Visible = false
-		main.Size = UDim2.new(0,300,0,40)
+		main.Size = UDim2.new(0,320,0,40)
 
 		minimizeBtn.Text = "+"
 
@@ -221,9 +254,68 @@ minimizeBtn.MouseButton1Click:Connect(function()
 
 		scrolling.Visible = true
 		status.Visible = true
-		main.Size = UDim2.new(0,300,0,260)
+		main.Size = UDim2.new(0,320,0,270)
 
 		minimizeBtn.Text = "-"
+	end
+end)
+
+--========================
+-- DRAG GUI
+--========================
+
+local dragging = false
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+
+	local delta =
+		input.Position - dragStart
+
+	main.Position = UDim2.new(
+		startPos.X.Scale,
+		startPos.X.Offset + delta.X,
+		startPos.Y.Scale,
+		startPos.Y.Offset + delta.Y
+	)
+end
+
+main.InputBegan:Connect(function(input)
+
+	if input.UserInputType ==
+		Enum.UserInputType.MouseButton1
+	then
+
+		dragging = true
+		dragStart = input.Position
+		startPos = main.Position
+
+		input.Changed:Connect(function()
+
+			if input.UserInputState ==
+				Enum.UserInputState.End
+			then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+main.InputChanged:Connect(function(input)
+
+	if input.UserInputType ==
+		Enum.UserInputType.MouseMovement
+	then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+
+	if input == dragInput and dragging then
+		update(input)
 	end
 end)
 
@@ -334,6 +426,10 @@ end
 
 local function HopServer()
 
+	if not AutoHop then
+		return
+	end
+
 	status.Text = "🔁 Searching server..."
 
 	local success,servers = pcall(function()
@@ -399,7 +495,7 @@ local function HopServer()
 end
 
 --========================
--- RETRY TP FAIL
+-- RETRY TELEPORT
 --========================
 
 GuiService.ErrorMessageChanged:Connect(function()
@@ -413,7 +509,7 @@ GuiService.ErrorMessageChanged:Connect(function()
 end)
 
 --========================
--- BUTTONS
+-- BUTTON ACTIONS
 --========================
 
 hopBtn.MouseButton1Click:Connect(function()
