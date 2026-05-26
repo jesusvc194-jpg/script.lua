@@ -1,11 +1,9 @@
---// DENYS ULTIMATE SECRET FINDER
---// AUTO HOP + BETTER DETECTION + ANTI REPEAT
---// DRAG GUI + STOP + MINIMIZE + EXIT
+-- DENYS SECRET FINDER
 
-if getgenv().BrainrotLoaded then
+if getgenv().DenysLoaded then
 	return
 end
-getgenv().BrainrotLoaded = true
+getgenv().DenysLoaded = true
 
 repeat task.wait()
 until game:IsLoaded()
@@ -19,28 +17,17 @@ local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local PlaceId = game.PlaceId
 
-repeat task.wait()
-until LocalPlayer.Character
-and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-
-task.wait(8)
-
---========================
 -- AUTO EXECUTE
---========================
-
 if queue_on_teleport then
 	queue_on_teleport([[
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/jesusvc194-jpg/script.lua/main/Denys"))()
 	]])
 end
 
---========================
 -- SETTINGS
---========================
-
 local AutoHop = true
 local ServerCursor = nil
+local hopping = false
 
 getgenv().VisitedServers =
 	getgenv().VisitedServers or {}
@@ -48,10 +35,7 @@ getgenv().VisitedServers =
 local VisitedServers =
 	getgenv().VisitedServers
 
---========================
 -- SECRET LIST
---========================
-
 local SecretKeywords = {
 
 "La Supreme Combinasion",
@@ -117,10 +101,7 @@ local SecretKeywords = {
 
 }
 
---========================
 -- GUI
---========================
-
 local gui = Instance.new("ScreenGui")
 gui.Parent = LocalPlayer.PlayerGui
 gui.ResetOnSpawn = false
@@ -130,6 +111,7 @@ main.Parent = gui
 main.Size = UDim2.new(0,320,0,270)
 main.Position = UDim2.new(0.02,0,0.2,0)
 main.BackgroundColor3 = Color3.fromRGB(15,15,15)
+main.BorderSizePixel = 0
 
 Instance.new("UICorner",main)
 
@@ -202,10 +184,7 @@ local layout = Instance.new("UIListLayout")
 layout.Parent = scrolling
 layout.Padding = UDim.new(0,5)
 
---========================
 -- BUTTONS
---========================
-
 stopBtn.MouseButton1Click:Connect(function()
 
 	AutoHop = not AutoHop
@@ -234,10 +213,7 @@ minimizeBtn.MouseButton1Click:Connect(function()
 		not status.Visible
 end)
 
---========================
 -- DRAG GUI
---========================
-
 local dragging = false
 local dragInput
 local dragStart
@@ -293,10 +269,7 @@ UserInputService.InputChanged:Connect(function(input)
 	end
 end)
 
---========================
 -- SOUND
---========================
-
 local function PlaySound()
 
 	local sound = Instance.new("Sound")
@@ -309,10 +282,7 @@ local function PlaySound()
 	game.Debris:AddItem(sound,5)
 end
 
---========================
 -- ADD CARD
---========================
-
 local function AddCard(player,item)
 
 	local holder = Instance.new("Frame")
@@ -337,10 +307,7 @@ local function AddCard(player,item)
 	"\n💎 "..item
 end
 
---========================
 -- DETECTOR
---========================
-
 local foundRare = false
 
 local function IsRare(name)
@@ -384,7 +351,6 @@ local function ScanServer()
 
 						status.Text =
 							"🔥 SECRET FOUND"
-
 					end
 				end
 			end
@@ -404,27 +370,31 @@ local function ScanServer()
 	end
 end
 
---========================
--- SERVER HOP
---========================
-
+-- HOP SERVER
 function HopServer()
 
-	if not AutoHop then
+	if hopping then
 		return
 	end
 
-	status.Text = "🔁 Searching new server..."
+	hopping = true
+
+	if not AutoHop then
+		hopping = false
+		return
+	end
+
+	status.Text = "🔄 Searching servers..."
 
 	local success,servers = pcall(function()
 
 		local url =
 			"https://games.roblox.com/v1/games/"..
 			PlaceId..
-			"/servers/Public?sortOrder=Desc&limit=100"
+			"/servers/Public?sortOrder=Asc&limit=100"
 
 		if ServerCursor then
-			url = url .. "&cursor=" .. ServerCursor
+			url = url.."&cursor="..ServerCursor
 		end
 
 		return HttpService:JSONDecode(
@@ -433,7 +403,14 @@ function HopServer()
 
 	end)
 
-	if not success or not servers then
+	if not success
+	or not servers
+	or not servers.data then
+
+		status.Text = "❌ Retry request..."
+
+		ServerCursor = nil
+		hopping = false
 
 		task.wait(2)
 
@@ -442,86 +419,17 @@ function HopServer()
 
 	ServerCursor = servers.nextPageCursor
 
-	local bestServer = nil
+	local found = false
 
-	for _,server in pairs(servers.data) do
+	for _,server in ipairs(servers.data) do
 
 		local freeSlots =
 			server.maxPlayers - server.playing
 
 		if server.id ~= game.JobId
-		and freeSlots >= 2
-		and server.playing >= 3
-		and not table.find(VisitedServers,server.id) then
-
-			table.insert(VisitedServers,server.id)
-
-			bestServer = server
-
-			break
-		end
-	end
-
-	if not bestServer then
-
-		ServerCursor = nil
-
-		task.wait(1)
-
-		return HopServer()
-	end
-
-	TeleportService:TeleportToPlaceInstance(
-		PlaceId,
-		bestServer.id,
-		LocalPlayer
-	)
-end
-
---========================
--- RETRY TP
---========================
-
-GuiService.ErrorMessageChanged:Connect(function()
-
-	task.wait(1)
-
-	HopServer()
-
-end)
-
---========================
--- MULTI SCAN
---========================
-
-for i = 1,5 do
-
-	status.Text =
-		"🔍 Scanning "..i.."/5"
-
-	ScanServer()
-
-	if foundRare then
-		break
-	end
-
-	task.wait(4)
-end
-
---========================
--- AUTO HOP
---========================
-
-if not foundRare then
-
-	status.Text = "❌ No secrets found"
-
-	task.wait(5)
-
-	HopServer()
-
-else
-
-	status.Text = "✅ SECRET SERVER"
-
-end
+		and freeSlots >= 1
+		and server.playing >= 2
+		and not table.find(
+			VisitedServers,
+			server.id
+		) then
