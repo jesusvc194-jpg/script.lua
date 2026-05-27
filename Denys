@@ -1,10 +1,34 @@
---// OPTIMIZED SECRET FINDER
---// AUTO EXECUTE + BUTTONS + MOBILE
+--// DENYS SECRET FINDER
+--// AUTO EXECUTE + SERVER HOP + BUTTONS + MOBILE
 
-if getgenv().BrainrotFinderLoaded then
-	return
+if getgenv().BrainrotAutoLoaded then
+    return
 end
-getgenv().BrainrotFinderLoaded = true
+getgenv().BrainrotAutoLoaded = true
+
+--// AUTO EXECUTE
+
+local SCRIPT_URL =
+"https://raw.githubusercontent.com/jesusvc194-jpg/script.lua/refs/heads/main/Denys"
+
+local REEXECUTE =
+'loadstring(game:HttpGet("'..SCRIPT_URL..'"))()'
+
+pcall(function()
+
+    if syn and syn.queue_on_teleport then
+        syn.queue_on_teleport(REEXECUTE)
+    end
+
+    if queue_on_teleport then
+        queue_on_teleport(REEXECUTE)
+    end
+
+    if fluxus and fluxus.queue_on_teleport then
+        fluxus.queue_on_teleport(REEXECUTE)
+    end
+
+end)
 
 repeat task.wait() until game:IsLoaded()
 
@@ -18,101 +42,81 @@ local LocalPlayer = Players.LocalPlayer
 local PlaceID = game.PlaceId
 local JobID = game.JobId
 
---// AUTO EXECUTE
-
-local SCRIPT_URL =
-"https://raw.githubusercontent.com/jesusvc194-jpg/Hades/refs/heads/main/script.lua"
-
-local AUTOEXEC =
-'loadstring(game:HttpGet("'..SCRIPT_URL..'"))()'
-
-pcall(function()
-
-	if queue_on_teleport then
-		queue_on_teleport(AUTOEXEC)
-	end
-
-	if syn and syn.queue_on_teleport then
-		syn.queue_on_teleport(AUTOEXEC)
-	end
-
-end)
-
---// VALID NAMES
+--// VALID BRAINROTS
 
 local ValidNames = {
 
-	["spyderinis"] = true,
-	["extinct tralalero"] = true,
-	["los spyderrinis"] = true,
-	["fragola la la la"] = true,
-	["la cucaracha"] = true,
-	["los tralaleritos"] = true,
-	["los tortus"] = true,
-	["guerriro digitale"] = true,
-	["yess my examine"] = true,
-	["extinct matteo"] = true,
-	["las tralaleritas"] = true,
-	["la karkerkar combinasion"] = true,
-	["job job job sahur"] = true,
-	["karker sahur"] = true,
-	["las vaquitas saturnitas"] = true,
-	["graipuss medussi"] = true,
-	["perrito burrito"] = true,
-	["nooo my hotspot"] = true,
-	["los jobcitos"] = true,
-	["noo my examine"] = true,
-	["la sahur combinasion"] = true,
-	["to to to sahur"] = true,
-	["karkerkar kurkur"] = true,
-	["pot hotspot"] = true,
-	["quesadilla crocodila"] = true,
-	["chicleteira bicicleteira"] = true,
-	["los noo my hotspotsitos"] = true,
-	["los nooo my hotspotsitos"] = true,
-	["los chicleteiras"] = true,
-	["67"] = true,
-	["la grande combinasion"] = true,
-	["mariachi corazoni"] = true,
-	["nuclearo dinossauro"] = true,
-	["tacorita bicicleta"] = true,
-	["las sis"] = true,
-	["los hotspotsitos"] = true,
-	["money money puggy"] = true,
-	["celularcini viciosini"] = true,
-	["los 67"] = true,
-	["la extinct grande"] = true,
-	["los bros"] = true,
-	["tralaledon"] = true,
-	["esok sekolah"] = true,
-	["los primos"] = true,
-	["los tacoritas"] = true,
-	["tang tang kelentang"] = true,
-	["ketupat kepat"] = true,
-	["tictac sahur"] = true,
-	["la supreme combinasion"] = true,
-	["ketchuru and musturu"] = true,
-	["garama and madundung"] = true,
-	["spaghetti tualetti"] = true,
-	["los combinasionas"] = true,
-	["dragon cannelloni"] = true,
-	["la combinasion"] = true,
-	["burguro and fryuro"] = true,
-	["chillin chili"] = true,
-	["strawberry elephant"] = true,
-	["kings coleslaw"] = true,
-	["developini braziliaspidini"] = true
+    ["spyderinis"] = true,
+    ["extinct tralalero"] = true,
+    ["los spyderrinis"] = true,
+    ["fragola la la la"] = true,
+    ["la cucaracha"] = true,
+    ["los tralaleritos"] = true,
+    ["los tortus"] = true,
+    ["guerriro digitale"] = true,
+    ["yess my examine"] = true,
+    ["extinct matteo"] = true,
+    ["las tralaleritas"] = true,
+    ["la karkerkar combinasion"] = true,
+    ["job job job sahur"] = true,
+    ["karker sahur"] = true,
+    ["las vaquitas saturnitas"] = true,
+    ["graipuss medussi"] = true,
+    ["perrito burrito"] = true,
+    ["nooo my hotspot"] = true,
+    ["los jobcitos"] = true,
+    ["noo my examine"] = true,
+    ["la sahur combinasion"] = true,
+    ["to to to sahur"] = true,
+    ["karkerkar kurkur"] = true,
+    ["pot hotspot"] = true,
+    ["quesadilla crocodila"] = true,
+    ["chicleteira bicicleteira"] = true,
+    ["los noo my hotspotsitos"] = true,
+    ["los nooo my hotspotsitos"] = true,
+    ["los chicleteiras"] = true,
+    ["67"] = true,
+    ["la grande combinasion"] = true,
+    ["mariachi corazoni"] = true,
+    ["nuclearo dinossauro"] = true,
+    ["tacorita bicicleta"] = true,
+    ["las sis"] = true,
+    ["los hotspotsitos"] = true,
+    ["money money puggy"] = true,
+    ["celularcini viciosini"] = true,
+    ["los 67"] = true,
+    ["la extinct grande"] = true,
+    ["los bros"] = true,
+    ["tralaledon"] = true,
+    ["esok sekolah"] = true,
+    ["los primos"] = true,
+    ["los tacoritas"] = true,
+    ["tang tang kelentang"] = true,
+    ["ketupat kepat"] = true,
+    ["tictac sahur"] = true,
+    ["la supreme combinasion"] = true,
+    ["ketchuru and musturu"] = true,
+    ["garama and madundung"] = true,
+    ["spaghetti tualetti"] = true,
+    ["los combinasionas"] = true,
+    ["dragon cannelloni"] = true,
+    ["la combinasion"] = true,
+    ["burguro and fryuro"] = true,
+    ["chillin chili"] = true,
+    ["strawberry elephant"] = true,
+    ["kings coleslaw"] = true,
+    ["developini braziliaspidini"] = true
 }
 
 local ValidRarities = {
-	["secret"] = true,
-	["god"] = true,
-	["mythic"] = true,
-	["omega"] = true,
-	["void"] = true
+    ["secret"] = true,
+    ["god"] = true,
+    ["mythic"] = true,
+    ["omega"] = true,
+    ["void"] = true
 }
 
---// SERVERS
+--// SERVER BLACKLIST
 
 local FILE = "VisitedServers.json"
 
@@ -120,41 +124,41 @@ local visited = {}
 
 pcall(function()
 
-	if isfile(FILE) then
-		visited = HttpService:JSONDecode(readfile(FILE))
-	end
+    if isfile(FILE) then
+        visited = HttpService:JSONDecode(readfile(FILE))
+    end
 end)
 
 visited[JobID] = true
 
 pcall(function()
 
-	writefile(
-		FILE,
-		HttpService:JSONEncode(visited)
-	)
+    writefile(
+        FILE,
+        HttpService:JSONEncode(visited)
+    )
 end)
 
 --// GUI
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "BrainrotFinder"
+gui.Name = "DenysFinder"
 gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 pcall(function()
-	gui.Parent = CoreGui
+    gui.Parent = CoreGui
 end)
 
 if not gui.Parent then
-	gui.Parent = LocalPlayer.PlayerGui
+    gui.Parent = LocalPlayer.PlayerGui
 end
 
 local main = Instance.new("Frame")
 main.Parent = gui
-main.Size = UDim2.new(0,220,0,145)
-main.Position = UDim2.new(0.73,0,0.02,0)
-main.BackgroundColor3 = Color3.fromRGB(10,10,10)
+main.Size = UDim2.new(0,230,0,155)
+main.Position = UDim2.new(0.72,0,0.02,0)
+main.BackgroundColor3 = Color3.fromRGB(15,15,15)
 main.BorderSizePixel = 0
 main.Active = true
 main.Draggable = true
@@ -163,9 +167,9 @@ Instance.new("UICorner",main).CornerRadius = UDim.new(0,12)
 
 local title = Instance.new("TextLabel")
 title.Parent = main
-title.Size = UDim2.new(1,0,0,26)
+title.Size = UDim2.new(1,0,0,28)
 title.BackgroundTransparency = 1
-title.Text = "🔥 SECRET FINDER"
+title.Text = "🔥 DENYS FINDER"
 title.TextColor3 = Color3.fromRGB(255,170,0)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 15
@@ -173,7 +177,7 @@ title.TextSize = 15
 local status = Instance.new("TextLabel")
 status.Parent = main
 status.Size = UDim2.new(1,0,0,24)
-status.Position = UDim2.new(0,0,0,24)
+status.Position = UDim2.new(0,0,0,28)
 status.BackgroundTransparency = 1
 status.Text = "🔍 Searching..."
 status.TextColor3 = Color3.new(1,1,1)
@@ -182,8 +186,8 @@ status.TextScaled = true
 
 local log = Instance.new("TextLabel")
 log.Parent = main
-log.Size = UDim2.new(1,-10,1,-55)
-log.Position = UDim2.new(0,5,0,50)
+log.Size = UDim2.new(1,-10,1,-65)
+log.Position = UDim2.new(0,5,0,55)
 log.BackgroundTransparency = 1
 log.Text = "[SYSTEM]\nWaiting..."
 log.TextColor3 = Color3.fromRGB(255,170,0)
@@ -209,30 +213,29 @@ layout.Padding = UDim.new(0,6)
 
 local function CreateButton(text,color)
 
-	local b = Instance.new("TextButton")
+    local b = Instance.new("TextButton")
 
-	b.Size = UDim2.new(0,65,1,0)
-	b.BackgroundColor3 = color
-	b.Text = text
-	b.TextColor3 = Color3.new(1,1,1)
-	b.Font = Enum.Font.GothamBold
-	b.TextScaled = true
-	b.Parent = buttons
-	b.AutoButtonColor = true
+    b.Size = UDim2.new(0,65,1,0)
+    b.BackgroundColor3 = color
+    b.Text = text
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Font = Enum.Font.GothamBold
+    b.TextScaled = true
+    b.Parent = buttons
 
-	Instance.new("UICorner",b).CornerRadius = UDim.new(0,8)
+    Instance.new("UICorner",b).CornerRadius = UDim.new(0,8)
 
-	return b
+    return b
 end
 
 local stopBtn =
-	CreateButton("STOP",Color3.fromRGB(170,0,0))
+    CreateButton("STOP",Color3.fromRGB(170,0,0))
 
 local hopBtn =
-	CreateButton("HOP",Color3.fromRGB(0,120,255))
+    CreateButton("HOP",Color3.fromRGB(0,120,255))
 
 local miniBtn =
-	CreateButton("-",Color3.fromRGB(80,80,80))
+    CreateButton("-",Color3.fromRGB(80,80,80))
 
 --// BUTTON FUNCTIONS
 
@@ -240,224 +243,222 @@ local stopped = false
 
 stopBtn.MouseButton1Click:Connect(function()
 
-	stopped = not stopped
+    stopped = not stopped
 
-	if stopped then
-		status.Text = "⛔ STOPPED"
-		stopBtn.Text = "START"
-	else
-		status.Text = "🔍 Searching..."
-		stopBtn.Text = "STOP"
-	end
+    if stopped then
+        status.Text = "⛔ STOPPED"
+        stopBtn.Text = "START"
+    else
+        status.Text = "🔍 Searching..."
+        stopBtn.Text = "STOP"
+    end
 end)
 
 local minimized = false
 
 miniBtn.MouseButton1Click:Connect(function()
 
-	minimized = not minimized
+    minimized = not minimized
 
-	if minimized then
+    if minimized then
 
-		log.Visible = false
-		buttons.Visible = false
+        log.Visible = false
+        buttons.Visible = false
 
-		main.Size = UDim2.new(0,220,0,55)
+        main.Size = UDim2.new(0,230,0,55)
 
-	else
+    else
 
-		log.Visible = true
-		buttons.Visible = true
+        log.Visible = true
+        buttons.Visible = true
 
-		main.Size = UDim2.new(0,220,0,145)
-	end
+        main.Size = UDim2.new(0,230,0,155)
+    end
 end)
 
 --// CLEAN TEXT
 
 local function CleanText(text)
 
-	text = text:lower()
-	text = text:gsub("%s+"," ")
-	text = text:gsub("[^%w%s]","")
+    text = text:lower()
+    text = text:gsub("%s+"," ")
+    text = text:gsub("[^%w%s]","")
 
-	return text
+    return text
 end
 
 --// DETECTOR
 
 local function IsValidBrainrot(model)
 
-	if not model:IsA("Model") then
-		return false
-	end
+    if not model:IsA("Model") then
+        return false
+    end
 
-	if not model:FindFirstChild("Humanoid")
-	and not model:FindFirstChild("HumanoidRootPart")
-	and not model.PrimaryPart then
-		return false
-	end
+    if not model:FindFirstChild("Humanoid")
+    and not model:FindFirstChild("HumanoidRootPart")
+    and not model.PrimaryPart then
+        return false
+    end
 
-	local foundName = nil
-	local foundRare = false
+    local foundName = nil
+    local foundRare = false
 
-	for _,v in ipairs(model:GetDescendants()) do
+    for _,v in ipairs(model:GetDescendants()) do
 
-		if v:IsA("TextLabel") then
+        if v:IsA("TextLabel") then
 
-			local text = CleanText(v.Text)
+            local text = CleanText(v.Text)
 
-			for name,_ in pairs(ValidNames) do
+            for name,_ in pairs(ValidNames) do
 
-				if string.find(text,name) then
-					foundName = name
-				end
-			end
+                if string.find(text,name) then
+                    foundName = name
+                end
+            end
 
-			for rare,_ in pairs(ValidRarities) do
+            for rare,_ in pairs(ValidRarities) do
 
-				if string.find(text,rare) then
-					foundRare = true
-				end
-			end
-		end
-	end
+                if string.find(text,rare) then
+                    foundRare = true
+                end
+            end
+        end
+    end
 
-	if foundName and foundRare then
-		return true, foundName
-	end
+    if foundName and foundRare then
+        return true, foundName
+    end
 
-	return false
+    return false
 end
 
 --// SERVER HOP
 
 local hopping = false
 
-function ServerHop()
+local function ServerHop()
 
-	if hopping then
-		return
-	end
+    if hopping then
+        return
+    end
 
-	hopping = true
+    hopping = true
 
-	local success,err = pcall(function()
+    local success,err = pcall(function()
 
-		log.Text = "[HOP]\nSearching New Server..."
+        log.Text = "[HOP]\nJoining New Server..."
 
-		local req =
-			game:HttpGet(
-				"https://games.roblox.com/v1/games/" ..
-				PlaceID ..
-				"/servers/Public?sortOrder=Asc&limit=100"
-			)
+        local req =
+            game:HttpGet(
+                "https://games.roblox.com/v1/games/" ..
+                PlaceID ..
+                "/servers/Public?sortOrder=Asc&limit=100"
+            )
 
-		local data = HttpService:JSONDecode(req)
+        local data =
+            HttpService:JSONDecode(req)
 
-		for _,server in ipairs(data.data) do
+        for _,server in ipairs(data.data) do
 
-			if server.id ~= JobID
-			and server.playing < server.maxPlayers
-			and not visited[server.id] then
+            if server.id ~= JobID
+            and server.playing < server.maxPlayers
+            and not visited[server.id] then
 
-				visited[server.id] = true
+                visited[server.id] = true
 
-				writefile(
-					FILE,
-					HttpService:JSONEncode(visited)
-				)
+                writefile(
+                    FILE,
+                    HttpService:JSONEncode(visited)
+                )
 
-				task.wait(1)
+                task.wait(1)
 
-				TeleportService:TeleportToPlaceInstance(
-					PlaceID,
-					server.id,
-					LocalPlayer
-				)
+                TeleportService:TeleportToPlaceInstance(
+                    PlaceID,
+                    server.id,
+                    LocalPlayer
+                )
 
-				return
-			end
-		end
-	end)
+                return
+            end
+        end
+    end)
 
-	if not success then
+    if not success then
 
-		log.Text =
-			"[ERROR]\n"..tostring(err)
-	end
+        log.Text =
+            "[ERROR]\n"..tostring(err)
+    end
 
-	hopping = false
+    hopping = false
 end
 
 hopBtn.MouseButton1Click:Connect(function()
-	ServerHop()
+    ServerHop()
 end)
 
 --// MAIN LOOP
 
 task.spawn(function()
 
-	while task.wait(8) do
+    while task.wait(8) do
 
-		if stopped then
-			continue
-		end
+        if stopped then
+            continue
+        end
 
-		local found = {}
+        local found = {}
 
-		for _,v in ipairs(workspace:GetChildren()) do
+        for _,v in ipairs(workspace:GetChildren()) do
 
-			pcall(function()
+            pcall(function()
 
-				local valid,name =
-					IsValidBrainrot(v)
+                local valid,name =
+                    IsValidBrainrot(v)
 
-				if valid and name then
+                if valid and name then
+                    found[name] = true
+                end
+            end)
+        end
 
-					if not found[name] then
-						found[name] = true
-					end
-				end
-			end)
-		end
+        local names = {}
 
-		local names = {}
+        for name,_ in pairs(found) do
+            table.insert(names,name)
+        end
 
-		for name,_ in pairs(found) do
-			table.insert(names,name)
-		end
+        if #names > 0 then
 
-		if #names > 0 then
+            status.Text = "🔥 SECRET FOUND"
 
-			status.Text = "🔥 SECRET FOUND"
+            log.Text =
+                "[FOUND]\n\n" ..
+                table.concat(names,"\n")
 
-			log.Text =
-				"[FOUND]\n\n" ..
-				table.concat(names,"\n")
+            pcall(function()
 
-			pcall(function()
+                StarterGui:SetCore(
+                    "SendNotification",
+                    {
+                        Title = "SECRET FOUND",
+                        Text = table.concat(names,", "),
+                        Duration = 10
+                    }
+                )
+            end)
 
-				StarterGui:SetCore(
-					"SendNotification",
-					{
-						Title = "SECRET FOUND",
-						Text = table.concat(names,", "),
-						Duration = 10
-					}
-				)
-			end)
+        else
 
-		else
+            status.Text = "🔍 Searching..."
 
-			status.Text = "🔍 Searching..."
+            log.Text =
+                "[SCAN]\nNo Secret Found"
 
-			log.Text =
-				"[SCAN]\nNo Secret Found"
-
-			ServerHop()
-		end
-	end
+            ServerHop()
+        end
+    end
 end)
 
-print("OPTIMIZED SECRET FINDER LOADED")
+print("DENYS FINDER LOADED")
