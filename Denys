@@ -1,8 +1,5 @@
 --// OPTIMIZED SECRET FINDER
---// ONLY DETECTS VALID BRAINROTS
---// MOBILE VERSION
---// LESS LAG
---// BETTER SERVER HOP
+--// AUTO EXECUTE + BUTTONS + MOBILE
 
 if getgenv().BrainrotFinderLoaded then
 	return
@@ -15,6 +12,7 @@ local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 local StarterGui = game:GetService("StarterGui")
+local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 local PlaceID = game.PlaceId
@@ -22,17 +20,22 @@ local JobID = game.JobId
 
 --// AUTO EXECUTE
 
-local LOADSTRING =
-'loadstring(game:HttpGet("https://raw.githubusercontent.com/jesusvc194-jpg/Hades/refs/heads/main/script.lua"))()'
+local SCRIPT_URL =
+"https://raw.githubusercontent.com/jesusvc194-jpg/Hades/refs/heads/main/script.lua"
+
+local AUTOEXEC =
+'loadstring(game:HttpGet("'..SCRIPT_URL..'"))()'
 
 pcall(function()
 
 	if queue_on_teleport then
-		queue_on_teleport(LOADSTRING)
-
-	elseif syn and syn.queue_on_teleport then
-		syn.queue_on_teleport(LOADSTRING)
+		queue_on_teleport(AUTOEXEC)
 	end
+
+	if syn and syn.queue_on_teleport then
+		syn.queue_on_teleport(AUTOEXEC)
+	end
+
 end)
 
 --// VALID NAMES
@@ -101,8 +104,6 @@ local ValidNames = {
 	["developini braziliaspidini"] = true
 }
 
---// RARITIES
-
 local ValidRarities = {
 	["secret"] = true,
 	["god"] = true,
@@ -111,7 +112,7 @@ local ValidRarities = {
 	["void"] = true
 }
 
---// SERVER BLACKLIST
+--// SERVERS
 
 local FILE = "VisitedServers.json"
 
@@ -138,13 +139,21 @@ end)
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "BrainrotFinder"
-gui.Parent = game.CoreGui
 gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+pcall(function()
+	gui.Parent = CoreGui
+end)
+
+if not gui.Parent then
+	gui.Parent = LocalPlayer.PlayerGui
+end
 
 local main = Instance.new("Frame")
 main.Parent = gui
 main.Size = UDim2.new(0,220,0,145)
-main.Position = UDim2.new(0.74,0,0.02,0)
+main.Position = UDim2.new(0.73,0,0.02,0)
 main.BackgroundColor3 = Color3.fromRGB(10,10,10)
 main.BorderSizePixel = 0
 main.Active = true
@@ -184,7 +193,87 @@ log.TextWrapped = true
 log.TextXAlignment = Enum.TextXAlignment.Left
 log.TextYAlignment = Enum.TextYAlignment.Top
 
---// DETECTOR
+--// BUTTONS
+
+local buttons = Instance.new("Frame")
+buttons.Parent = main
+buttons.Size = UDim2.new(1,-10,0,32)
+buttons.Position = UDim2.new(0,5,1,-37)
+buttons.BackgroundTransparency = 1
+
+local layout = Instance.new("UIListLayout")
+layout.Parent = buttons
+layout.FillDirection = Enum.FillDirection.Horizontal
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.Padding = UDim.new(0,6)
+
+local function CreateButton(text,color)
+
+	local b = Instance.new("TextButton")
+
+	b.Size = UDim2.new(0,65,1,0)
+	b.BackgroundColor3 = color
+	b.Text = text
+	b.TextColor3 = Color3.new(1,1,1)
+	b.Font = Enum.Font.GothamBold
+	b.TextScaled = true
+	b.Parent = buttons
+	b.AutoButtonColor = true
+
+	Instance.new("UICorner",b).CornerRadius = UDim.new(0,8)
+
+	return b
+end
+
+local stopBtn =
+	CreateButton("STOP",Color3.fromRGB(170,0,0))
+
+local hopBtn =
+	CreateButton("HOP",Color3.fromRGB(0,120,255))
+
+local miniBtn =
+	CreateButton("-",Color3.fromRGB(80,80,80))
+
+--// BUTTON FUNCTIONS
+
+local stopped = false
+
+stopBtn.MouseButton1Click:Connect(function()
+
+	stopped = not stopped
+
+	if stopped then
+		status.Text = "⛔ STOPPED"
+		stopBtn.Text = "START"
+	else
+		status.Text = "🔍 Searching..."
+		stopBtn.Text = "STOP"
+	end
+end)
+
+local minimized = false
+
+miniBtn.MouseButton1Click:Connect(function()
+
+	minimized = not minimized
+
+	if minimized then
+
+		log.Visible = false
+		buttons.Visible = false
+
+		main.Size = UDim2.new(0,220,0,55)
+
+	else
+
+		log.Visible = true
+		buttons.Visible = true
+
+		main.Size = UDim2.new(0,220,0,145)
+	end
+end)
+
+--// CLEAN TEXT
 
 local function CleanText(text)
 
@@ -194,6 +283,8 @@ local function CleanText(text)
 
 	return text
 end
+
+--// DETECTOR
 
 local function IsValidBrainrot(model)
 
@@ -216,16 +307,12 @@ local function IsValidBrainrot(model)
 
 			local text = CleanText(v.Text)
 
-			-- NAME DETECTION
-
 			for name,_ in pairs(ValidNames) do
 
 				if string.find(text,name) then
 					foundName = name
 				end
 			end
-
-			-- RARITY DETECTION
 
 			for rare,_ in pairs(ValidRarities) do
 
@@ -247,7 +334,7 @@ end
 
 local hopping = false
 
-local function ServerHop()
+function ServerHop()
 
 	if hopping then
 		return
@@ -303,15 +390,21 @@ local function ServerHop()
 	hopping = false
 end
 
+hopBtn.MouseButton1Click:Connect(function()
+	ServerHop()
+end)
+
 --// MAIN LOOP
 
 task.spawn(function()
 
 	while task.wait(8) do
 
-		local found = {}
+		if stopped then
+			continue
+		end
 
-		-- LESS LAG
+		local found = {}
 
 		for _,v in ipairs(workspace:GetChildren()) do
 
