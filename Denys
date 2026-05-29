@@ -1,4 +1,4 @@
---// SECRET HOPPER ULTIMATE
+--// SECRET HOPPER ULTIMATE FINAL
 
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
@@ -20,7 +20,9 @@ visitedServers[game.JobId] = true
 -- ==================== NOTIFY ====================
 
 local function notify(title, text)
+
     pcall(function()
+
         game.StarterGui:SetCore("SendNotification", {
             Title = title,
             Text = text,
@@ -34,41 +36,72 @@ print("🔍 SECRET HOPPER ACTIVADO")
 -- ==================== KEYWORDS ====================
 
 local keywords = {
-    "secret",
     "67",
     "spyderinis",
+    "los spyderrinis",
     "extinct tralalero",
-    "fragola",
+    "fragola la la la",
     "la cucaracha",
     "los tralaleritos",
     "los tortus",
     "guerriro digitale",
-    "matteo",
-    "karkerkar",
-    "job sahur",
-    "vaquitas",
+    "yess my examine",
+    "extinct matteo",
+    "las tralaleritas",
+    "la karkerkar combinasion",
+    "job job job sahur",
+    "karker sahur",
+    "las vaquitas saturnitas",
+    "graipuss medussi",
     "perrito burrito",
-    "hotspot",
-    "combinasion",
-    "mariachi",
-    "nuclearo",
-    "tacorita",
+    "nooo my hotspot",
+    "los jobcitos",
+    "noo my examine",
+    "la sahur combinasion",
+    "to to to sahur",
+    "karkerkar kurkur",
+    "pot hotspot",
+    "quesadilla crocodila",
+    "chicleteira bicicleteira",
+    "los noo my hotspotsitos",
+    "los nooo my hotspotsitos",
+    "los chicleteiras",
+    "la grande combinasion",
+    "mariachi corazoni",
+    "nuclearo dinossauro",
+    "tacorita bicicleta",
+    "las sis",
+    "los hotspotsitos",
     "money money puggy",
-    "celularcini",
+    "celularcini viciosini",
+    "los 61",
+    "la extinct grande",
+    "los bros",
     "tralaledon",
+    "esok sekolah",
     "los primos",
+    "los tacoritas",
+    "tang tang kelentang",
+    "ketupat kepat",
     "tictac sahur",
-    "spaghetti",
+    "la supreme combinasion",
+    "ketchuru and musturu",
+    "garama and madundung",
+    "spaghetti tualetti",
+    "los combinasionas",
     "dragon cannelloni",
-    "burguro",
+    "la combinasion",
+    "burguro and fryuro",
     "chillin chili",
     "strawberry elephant",
-    "developini"
+    "kings coleslaw",
+    "developini braziliaspidini"
 }
 
 -- ==================== UUID FILTER ====================
 
 local function isUUID(str)
+
     return str:match("%x%x%x%x%x%x%x%x%-%x%x%x%x")
 end
 
@@ -83,7 +116,7 @@ local function checkForSecret()
 
             local name = obj.Name:lower()
 
-            -- Ignora UUIDs
+            -- Ignora UUID
             if isUUID(name) then
                 continue
             end
@@ -93,8 +126,20 @@ local function checkForSecret()
                 continue
             end
 
-            -- Ignora modelos vacíos
-            if #obj:GetDescendants() < 3 then
+            -- Debe tener partes físicas
+            local valid = false
+
+            for _, v in pairs(obj:GetDescendants()) do
+
+                if v:IsA("MeshPart")
+                or v:IsA("Part") then
+
+                    valid = true
+                    break
+                end
+            end
+
+            if not valid then
                 continue
             end
 
@@ -116,35 +161,12 @@ local function checkForSecret()
                 end
             end
         end
-
-        -- DETECCIÓN DE TEXTOS GUI
-        if obj:IsA("TextLabel") then
-
-            local txt = obj.Text:lower()
-
-            for _, word in ipairs(keywords) do
-
-                if txt:find(word) then
-
-                    found = true
-
-                    notify(
-                        "🎉 SECRET DETECTADO!",
-                        obj.Text
-                    )
-
-                    print("✅ TEXTO DETECTADO:", obj.Text)
-
-                    return true
-                end
-            end
-        end
     end
 
     return false
 end
 
--- ==================== INFO SERVIDOR ====================
+-- ==================== INFO ====================
 
 local function getServerInfo()
 
@@ -159,23 +181,23 @@ end
 
 -- ==================== SERVER HOP ====================
 
-local function hopLowPlayerServer()
+local function hopServer()
 
     if not running or found then
         return
     end
 
     notify(
-        "🔍 Buscando",
-        "Servidor con máximo 4 jugadores"
+        "🔄 Cambiando",
+        "Buscando nuevo servidor"
     )
 
     local success, result = pcall(function()
 
         return game:HttpGet(
             "https://games.roblox.com/v1/games/"
-            .. PLACE_ID
-            .. "/servers/Public?sortOrder=Asc&limit=100"
+            .. PLACE_ID ..
+            "/servers/Public?sortOrder=Asc&limit=100"
         )
     end)
 
@@ -183,7 +205,7 @@ local function hopLowPlayerServer()
 
         notify(
             "❌ Error",
-            "No se pudo obtener servidores"
+            "No se pudieron obtener servidores"
         )
 
         return
@@ -195,19 +217,20 @@ local function hopLowPlayerServer()
 
         local id = server.id
         local playing = server.playing
+        local maxPlayers = server.maxPlayers
 
-        if not visitedServers[id]
-        and id ~= game.JobId
-        and playing <= 4 then
+        if id ~= game.JobId
+        and not visitedServers[id]
+        and playing < maxPlayers then
 
             visitedServers[id] = true
 
             notify(
                 "🚀 Entrando",
-                "Servidor con " .. playing .. " jugadores"
+                "Jugadores: " .. playing
             )
 
-            wait(2)
+            wait(1)
 
             TeleportService:TeleportToPlaceInstance(
                 PLACE_ID,
@@ -220,8 +243,8 @@ local function hopLowPlayerServer()
     end
 
     notify(
-        "⚠️ No Encontrado",
-        "No hay servidores nuevos"
+        "⚠️ Sin servidores",
+        "No se encontraron servidores nuevos"
     )
 end
 
@@ -231,15 +254,15 @@ spawn(function()
 
     while running and not found do
 
-        wait(4)
+        wait(5)
 
         if checkForSecret() then
             break
         end
 
-        hopLowPlayerServer()
+        hopServer()
 
-        wait(9)
+        wait(10)
     end
 end)
 
@@ -319,26 +342,11 @@ minimizeBtn.TextColor3 = Color3.new(1,1,1)
 minimizeBtn.TextScaled = true
 minimizeBtn.Parent = frame
 
--- ==================== SERVIDORES PEQUEÑOS ====================
-
-local lowBtn = Instance.new("TextButton")
-lowBtn.Size = UDim2.new(0.9,0,0,40)
-lowBtn.Position = UDim2.new(0.05,0,0,180)
-lowBtn.BackgroundColor3 = Color3.fromRGB(0,170,120)
-lowBtn.Text = "👥 Buscar 4 Jugadores"
-lowBtn.TextColor3 = Color3.new(1,1,1)
-lowBtn.TextScaled = true
-lowBtn.Parent = frame
-
-lowBtn.MouseButton1Click:Connect(function()
-    hopLowPlayerServer()
-end)
-
 -- ==================== CAMBIAR SERVIDOR ====================
 
 local hopBtn = Instance.new("TextButton")
 hopBtn.Size = UDim2.new(0.9,0,0,40)
-hopBtn.Position = UDim2.new(0.05,0,0,230)
+hopBtn.Position = UDim2.new(0.05,0,0,180)
 hopBtn.BackgroundColor3 = Color3.fromRGB(0,90,255)
 hopBtn.Text = "🔄 Cambiar Servidor"
 hopBtn.TextColor3 = Color3.new(1,1,1)
@@ -346,7 +354,7 @@ hopBtn.TextScaled = true
 hopBtn.Parent = frame
 
 hopBtn.MouseButton1Click:Connect(function()
-    hopLowPlayerServer()
+    hopServer()
 end)
 
 -- ==================== MINIMIZE SYSTEM ====================
@@ -358,7 +366,6 @@ minimizeBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
 
     stopBtn.Visible = not minimized
-    lowBtn.Visible = not minimized
     hopBtn.Visible = not minimized
     serverInfo.Visible = not minimized
 
@@ -378,9 +385,9 @@ minimizeBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ==================== DRAG SYSTEM ====================
+-- ==================== DRAG MOBILE FIX ====================
 
-local dragging
+local dragging = false
 local dragInput
 local dragStart
 local startPos
@@ -399,7 +406,8 @@ end
 
 frame.InputBegan:Connect(function(input)
 
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    if input.UserInputType == Enum.UserInputType.Touch
+    or input.UserInputType == Enum.UserInputType.MouseButton1 then
 
         dragging = true
         dragStart = input.Position
@@ -416,7 +424,9 @@ end)
 
 frame.InputChanged:Connect(function(input)
 
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
+    if input.UserInputType == Enum.UserInputType.Touch
+    or input.UserInputType == Enum.UserInputType.MouseMovement then
+
         dragInput = input
     end
 end)
