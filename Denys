@@ -1,4 +1,10 @@
---// SECRET HOPPER ULTIMATE FINAL
+--// SECRET HOPPER ULTIMATE AUTO EXEC
+
+if getgenv().SecretHopperLoaded then
+    return
+end
+
+getgenv().SecretHopperLoaded = true
 
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
@@ -11,6 +17,18 @@ local PLACE_ID = game.PlaceId
 
 local running = true
 local found = false
+
+-- ==================== AUTO EXEC ====================
+
+local scriptCode = [[
+loadstring(game:HttpGet("https://raw.githubusercontent.com/jesusvc194-jpg/script.lua/refs/heads/main/Denys"))()
+]]
+
+if queue_on_teleport then
+    queue_on_teleport(scriptCode)
+elseif syn and syn.queue_on_teleport then
+    syn.queue_on_teleport(scriptCode)
+end
 
 -- ==================== BLACKLIST ====================
 
@@ -111,7 +129,6 @@ local function checkForSecret()
 
     for _, obj in pairs(Workspace:GetDescendants()) do
 
-        -- SOLO MODELOS
         if obj:IsA("Model") then
 
             local name = obj.Name:lower()
@@ -189,8 +206,10 @@ local function hopServer()
 
     notify(
         "🔄 Cambiando",
-        "Buscando nuevo servidor"
+        "Buscando servidor nuevo"
     )
+
+    visitedServers[game.JobId] = true
 
     local success, result = pcall(function()
 
@@ -242,9 +261,17 @@ local function hopServer()
         end
     end
 
+    -- FALLBACK
     notify(
-        "⚠️ Sin servidores",
-        "No se encontraron servidores nuevos"
+        "⚠️ Reintentando",
+        "Usando teleport normal"
+    )
+
+    wait(1)
+
+    TeleportService:Teleport(
+        PLACE_ID,
+        LocalPlayer
     )
 end
 
