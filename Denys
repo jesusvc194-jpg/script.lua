@@ -1,80 +1,202 @@
--- === SERVER HOPPER AVANZADO + DETECCIÓN DE SERVIDOR ACTUAL ===
+-- === SERVER HOPPER AVANZADO + BLACKLIST + SERVIDORES PEQUEÑOS ===
+
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
-local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
 
+local LocalPlayer = Players.LocalPlayer
 local PLACE_ID = game.PlaceId
+
 local running = true
 local found = false
 
-print("🔍 Server Hopper con detección de servidor activado")
+-- Lista negra de servidores visitados
+local visitedServers = {}
+visitedServers[game.JobId] = true
+
+print("🔍 Server Hopper Inteligente Activado")
 
 local function notify(title, text)
-    game.StarterGui:SetCore("SendNotification", {Title = title, Text = text, Duration = 8})
+    pcall(function()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = title,
+            Text = text,
+            Duration = 8
+        })
+    end)
 end
 
--- Lista de detección (con errores comunes)
+-- ==================== KEYWORDS ====================
+
 local keywords = {
-    "secret", "secreto", "67", "bunitos", "bonitos", "spyderrinis", "tralalero", 
-    "fragola", "cucaracha", "tralaleritos", "tortus", "guerriro", "examine", 
-    "matteo", "karkerkar", "sahur", "vaquitas", "perrito", "hotspot", "jobcitos",
-    "combinasion", "mariachi", "nuclearo", "tacorita", "hotspotsitos", "puggy",
-    "celularcini", "bros", "tralaledon", "primos", "tictac", "ketchuru", "garama",
-    "spaghetti", "dragon", "burguro", "chillin", "strawberry", "developini"
+    "secret","spyderinis","extinct tralalero","los spyderrinis",
+    "fragola la la la","la cucaracha","los tralaleritos",
+    "los tortus","guerriro digitale","yess my examine",
+    "extinct matteo","las tralaleritas","la karkerkar combinasion",
+    "job job job sahur","karker sahur","las vaquitas saturnitas",
+    "graipuss medussi","perrito burrito","nooo my hotspot",
+    "los jobcitos","noo my examine","la sahur combinasion",
+    "to to to sahur","karkerkar kurkur","pot hotspot",
+    "quesadilla crocodila","chicleteira bicicleteira",
+    "los noo my hotspotsitos","los nooo my hotspotsitos",
+    "los chicleteiras","67","la grande combinasion",
+    "mariachi corazoni","nuclearo dinossauro",
+    "tacorita bicicleta","las sis","los hotspotsitos",
+    "money money puggy","celularcini viciosini",
+    "los 61","la extinct grande","los bros",
+    "tralaledon","esok sekolah","los primos",
+    "los tacoritas","tang tang kelentang",
+    "ketupat kepat","tictac sahur",
+    "la supreme combinasion","ketchuru and musturu",
+    "garama and madundung","spaghetti tualetti",
+    "los combinasionas","dragon cannelloni",
+    "la combinasion","burguro and fryuro",
+    "chillin chili","strawberry elephant",
+    "kings coleslaw","developini braziliaspidini"
 }
+
+-- ==================== DETECCIÓN ====================
 
 local function checkForSecret()
     for _, obj in pairs(Workspace:GetDescendants()) do
         if obj:IsA("Model") or obj:IsA("Part") or obj:IsA("MeshPart") then
             local name = obj.Name:lower()
+
             for _, word in ipairs(keywords) do
                 if name:find(word) then
                     found = true
-                    notify("🎉 ¡SECRET ENCONTRADO!", "Nombre: " .. obj.Name)
+
+                    notify(
+                        "🎉 ¡SECRET ENCONTRADO!",
+                        "Nombre: " .. obj.Name
+                    )
+
                     print("✅ ENCONTRADO: " .. obj.Name)
+
                     return true
                 end
             end
         end
     end
+
     return false
 end
+
+-- ==================== INFO ====================
 
 local function getServerInfo()
     local serverId = game.JobId or "Desconocido"
     local players = #Players:GetPlayers()
-    return "Servidor: " .. serverId:sub(1,8) .. "... | Jugadores: " .. players
+
+    return "Servidor: "
+        .. serverId:sub(1,8)
+        .. "... | Jugadores: "
+        .. players
 end
 
+-- ==================== SERVER HOP NORMAL ====================
+
 local function hopServer()
-    if not running or found then return end
+    if not running or found then
+        return
+    end
+
     notify("🔄 Cambiando Servidor", getServerInfo())
+
     wait(2)
+
     TeleportService:Teleport(PLACE_ID, LocalPlayer)
 end
 
--- Loop principal
+-- ==================== SERVER HOP INTELIGENTE ====================
+
+local function hopLowPlayerServer()
+    if not running or found then
+        return
+    end
+
+    notify("🔍 Buscando", "Servidor con máximo 4 jugadores")
+
+    local success, result = pcall(function()
+        return game:HttpGet(
+            "https://games.roblox.com/v1/games/"
+            .. PLACE_ID
+            .. "/servers/Public?sortOrder=Asc&limit=100"
+        )
+    end)
+
+    if not success then
+        notify("❌ Error", "No se pudo obtener servidores")
+        return
+    end
+
+    local data = HttpService:JSONDecode(result)
+
+    for _, server in pairs(data.data) do
+
+        local id = server.id
+        local playing = server.playing
+
+        -- Evita servidores repetidos
+        if not visitedServers[id]
+        and id ~= game.JobId
+        and playing <= 4 then
+
+            visitedServers[id] = true
+
+            notify(
+                "🚀 Entrando",
+                "Servidor con " .. playing .. " jugadores"
+            )
+
+            wait(2)
+
+            TeleportService:TeleportToPlaceInstance(
+                PLACE_ID,
+                id,
+                LocalPlayer
+            )
+
+            return
+        end
+    end
+
+    notify("⚠️ No Encontrado", "No hay servidores pequeños nuevos")
+end
+
+-- ==================== LOOP PRINCIPAL ====================
+
 spawn(function()
+
     while running and not found do
+
         wait(4)
-        if checkForSecret() then break end
-        hopServer()
+
+        if checkForSecret() then
+            break
+        end
+
+        hopLowPlayerServer()
+
         wait(9)
     end
 end)
 
 -- ==================== GUI ====================
+
 local sg = Instance.new("ScreenGui")
 sg.Name = "SecretHopper"
 sg.ResetOnSpawn = false
 sg.Parent = LocalPlayer.PlayerGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 280, 0, 220)
+frame.Size = UDim2.new(0, 280, 0, 280)
 frame.Position = UDim2.new(1, -300, 0, 60)
 frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 frame.Parent = sg
+
+-- ==================== TITULO ====================
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1,0,0,40)
@@ -83,6 +205,8 @@ title.Text = "🔍 SECRET HOPPER"
 title.TextColor3 = Color3.new(1,1,1)
 title.TextScaled = true
 title.Parent = frame
+
+-- ==================== INFO ====================
 
 local serverInfo = Instance.new("TextLabel")
 serverInfo.Size = UDim2.new(1,0,0,30)
@@ -99,7 +223,8 @@ spawn(function()
     end
 end)
 
--- Botones
+-- ==================== BOTÓN STOP ====================
+
 local stopBtn = Instance.new("TextButton")
 stopBtn.Size = UDim2.new(0.9,0,0,40)
 stopBtn.Position = UDim2.new(0.05,0,0,80)
@@ -108,6 +233,19 @@ stopBtn.Text = "⛔ Detener Hopper"
 stopBtn.TextColor3 = Color3.new(1,1,1)
 stopBtn.TextScaled = true
 stopBtn.Parent = frame
+
+stopBtn.MouseButton1Click:Connect(function()
+    running = false
+
+    notify(
+        "⛔ Detenido",
+        "El hopper se ha detenido"
+    )
+end)
+
+-- ==================== BOTÓN MINIMIZAR ====================
+
+local minimized = false
 
 local minimizeBtn = Instance.new("TextButton")
 minimizeBtn.Size = UDim2.new(0.9,0,0,40)
@@ -118,15 +256,96 @@ minimizeBtn.TextColor3 = Color3.new(1,1,1)
 minimizeBtn.TextScaled = true
 minimizeBtn.Parent = frame
 
-stopBtn.MouseButton1Click:Connect(function()
-    running = false
-    notify("⛔ Detenido", "El hopper se ha detenido")
-end)
-
 minimizeBtn.MouseButton1Click:Connect(function()
-    frame.Visible = not frame.Visible
-    minimizeBtn.Text = frame.Visible and "⏬ Minimizar" or "🔼 Mostrar"
+
+    minimized = not minimized
+
+    stopBtn.Visible = not minimized
+    lowBtn.Visible = not minimized
+    serverInfo.Visible = not minimized
+
+    if minimized then
+        frame.Size = UDim2.new(0,280,0,50)
+        minimizeBtn.Text = "🔼 Mostrar"
+    else
+        frame.Size = UDim2.new(0,280,0,280)
+        minimizeBtn.Text = "⏬ Minimizar"
+    end
 end)
 
-notify("🚀 Hopper Activado", "Buscando Secret + Bunitos y más")
-notify("Servidor Actual", getServerInfo())
+-- ==================== BOTÓN SERVIDORES PEQUEÑOS ====================
+
+local lowBtn = Instance.new("TextButton")
+lowBtn.Size = UDim2.new(0.9,0,0,40)
+lowBtn.Position = UDim2.new(0.05,0,0,180)
+lowBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 120)
+lowBtn.Text = "👥 Buscar 4 Jugadores"
+lowBtn.TextColor3 = Color3.new(1,1,1)
+lowBtn.TextScaled = true
+lowBtn.Parent = frame
+
+lowBtn.MouseButton1Click:Connect(function()
+    hopLowPlayerServer()
+end)
+
+-- ==================== AUTO DRAG ====================
+
+local UIS = game:GetService("UserInputService")
+
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+
+    frame.Position = UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+    )
+end
+
+frame.InputBegan:Connect(function(input)
+
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- ==================== NOTIFICACIONES ====================
+
+notify(
+    "🚀 Hopper Activado",
+    "Buscando secrets automáticamente"
+)
+
+notify(
+    "Servidor Actual",
+    getServerInfo()
+)
