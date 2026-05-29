@@ -1,420 +1,138 @@
---// SECRET HOPPER ULTIMATE AUTO EXEC
+--// 30M+ ULTIMATE FINDER
+--// AUTO HOP + BLACKLIST + AUTO EXECUTE
+--// ESP + TELEPORT + TARGET LOST SYSTEM
 
-if getgenv().SecretHopperLoaded then
+if getgenv().UltimateFinderLoaded then
     return
 end
+getgenv().UltimateFinderLoaded = true
 
-getgenv().SecretHopperLoaded = true
+repeat task.wait() until game:IsLoaded()
 
-local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
+local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 local UIS = game:GetService("UserInputService")
 
-local LocalPlayer = Players.LocalPlayer
-local PLACE_ID = game.PlaceId
+local LP = Players.LocalPlayer
+local PlaceId = game.PlaceId
+local JobId = game.JobId
 
-local running = true
-local found = false
+--// SETTINGS
+local MIN_VALUE = 30000000
+local SCAN_DELAY = 3
+local LOST_WAIT = 10
 
--- ==================== AUTO EXEC ====================
+--// SERVER BLACKLIST
+getgenv().VisitedServers = getgenv().VisitedServers or {}
+getgenv().VisitedServers[JobId] = true
 
-local scriptCode = [[
-loadstring(game:HttpGet("https://raw.githubusercontent.com/jesusvc194-jpg/script.lua/refs/heads/main/Denys"))()
+--// FLAGS
+local AutoHop = true
+local targetPart = nil
+local currentTarget = nil
+local targetFound = false
+
+--// AUTO EXECUTE AFTER TELEPORT
+local SCRIPT = [[
+loadstring(game:HttpGet("YOUR_RAW_LINK"))()
 ]]
 
-if queue_on_teleport then
-    queue_on_teleport(scriptCode)
-elseif syn and syn.queue_on_teleport then
-    syn.queue_on_teleport(scriptCode)
-end
-
--- ==================== BLACKLIST ====================
-
-local visitedServers = {}
-visitedServers[game.JobId] = true
-
--- ==================== NOTIFY ====================
-
-local function notify(title, text)
-
-    pcall(function()
-
-        game.StarterGui:SetCore("SendNotification", {
-            Title = title,
-            Text = text,
-            Duration = 8
-        })
-    end)
-end
-
-print("🔍 SECRET HOPPER ACTIVADO")
-
--- ==================== KEYWORDS ====================
-
-local keywords = {
-    "67",
-    "spyderinis",
-    "los spyderrinis",
-    "extinct tralalero",
-    "fragola la la la",
-    "la cucaracha",
-    "los tralaleritos",
-    "los tortus",
-    "guerriro digitale",
-    "yess my examine",
-    "extinct matteo",
-    "las tralaleritas",
-    "la karkerkar combinasion",
-    "job job job sahur",
-    "karker sahur",
-    "las vaquitas saturnitas",
-    "graipuss medussi",
-    "perrito burrito",
-    "nooo my hotspot",
-    "los jobcitos",
-    "noo my examine",
-    "la sahur combinasion",
-    "to to to sahur",
-    "karkerkar kurkur",
-    "pot hotspot",
-    "quesadilla crocodila",
-    "chicleteira bicicleteira",
-    "los noo my hotspotsitos",
-    "los nooo my hotspotsitos",
-    "los chicleteiras",
-    "la grande combinasion",
-    "mariachi corazoni",
-    "nuclearo dinossauro",
-    "tacorita bicicleta",
-    "las sis",
-    "los hotspotsitos",
-    "money money puggy",
-    "celularcini viciosini",
-    "los 61",
-    "la extinct grande",
-    "los bros",
-    "tralaledon",
-    "esok sekolah",
-    "los primos",
-    "los tacoritas",
-    "tang tang kelentang",
-    "ketupat kepat",
-    "tictac sahur",
-    "la supreme combinasion",
-    "ketchuru and musturu",
-    "garama and madundung",
-    "spaghetti tualetti",
-    "los combinasionas",
-    "dragon cannelloni",
-    "la combinasion",
-    "burguro and fryuro",
-    "chillin chili",
-    "strawberry elephant",
-    "kings coleslaw",
-    "developini braziliaspidini"
-}
-
--- ==================== UUID FILTER ====================
-
-local function isUUID(str)
-
-    return str:match("%x%x%x%x%x%x%x%x%-%x%x%x%x")
-end
-
--- ==================== DETECCIÓN ====================
-
-local function checkForSecret()
-
-    for _, obj in pairs(Workspace:GetDescendants()) do
-
-        if obj:IsA("Model") then
-
-            local name = obj.Name:lower()
-
-            -- Ignora UUID
-            if isUUID(name) then
-                continue
-            end
-
-            -- Ignora jugadores
-            if Players:FindFirstChild(obj.Name) then
-                continue
-            end
-
-            -- Debe tener partes físicas
-            local valid = false
-
-            for _, v in pairs(obj:GetDescendants()) do
-
-                if v:IsA("MeshPart")
-                or v:IsA("Part") then
-
-                    valid = true
-                    break
-                end
-            end
-
-            if not valid then
-                continue
-            end
-
-            -- Buscar keywords
-            for _, word in ipairs(keywords) do
-
-                if name:find(word) then
-
-                    found = true
-
-                    notify(
-                        "🎉 ¡SECRET ENCONTRADO!",
-                        "Brainrot: " .. obj.Name
-                    )
-
-                    print("✅ BRAINROT DETECTADO:", obj.Name)
-
-                    return true
-                end
-            end
-        end
-    end
-
-    return false
-end
-
--- ==================== INFO ====================
-
-local function getServerInfo()
-
-    local serverId = game.JobId or "Desconocido"
-    local players = #Players:GetPlayers()
-
-    return "Servidor: "
-        .. serverId:sub(1,8)
-        .. "... | Jugadores: "
-        .. players
-end
-
--- ==================== SERVER HOP ====================
-
-local function hopServer()
-
-    if not running or found then
-        return
-    end
-
-    notify(
-        "🔄 Cambiando",
-        "Buscando servidor nuevo"
-    )
-
-    visitedServers[game.JobId] = true
-
-    local success, result = pcall(function()
-
-        return game:HttpGet(
-            "https://games.roblox.com/v1/games/"
-            .. PLACE_ID ..
-            "/servers/Public?sortOrder=Asc&limit=100"
-        )
-    end)
-
-    if not success then
-
-        notify(
-            "❌ Error",
-            "No se pudieron obtener servidores"
-        )
-
-        return
-    end
-
-    local data = HttpService:JSONDecode(result)
-
-    for _, server in pairs(data.data) do
-
-        local id = server.id
-        local playing = server.playing
-        local maxPlayers = server.maxPlayers
-
-        if id ~= game.JobId
-        and not visitedServers[id]
-        and playing < maxPlayers then
-
-            visitedServers[id] = true
-
-            notify(
-                "🚀 Entrando",
-                "Jugadores: " .. playing
-            )
-
-            wait(1)
-
-            TeleportService:TeleportToPlaceInstance(
-                PLACE_ID,
-                id,
-                LocalPlayer
-            )
-
-            return
-        end
-    end
-
-    -- FALLBACK
-    notify(
-        "⚠️ Reintentando",
-        "Usando teleport normal"
-    )
-
-    wait(1)
-
-    TeleportService:Teleport(
-        PLACE_ID,
-        LocalPlayer
-    )
-end
-
--- ==================== LOOP ====================
-
-spawn(function()
-
-    while running and not found do
-
-        wait(5)
-
-        if checkForSecret() then
-            break
-        end
-
-        hopServer()
-
-        wait(10)
+pcall(function()
+
+    if queue_on_teleport then
+        queue_on_teleport(SCRIPT)
+    elseif syn and syn.queue_on_teleport then
+        syn.queue_on_teleport(SCRIPT)
     end
 end)
 
--- ==================== GUI ====================
-
-local sg = Instance.new("ScreenGui")
-sg.Name = "SecretHopper"
-sg.ResetOnSpawn = false
-sg.Parent = LocalPlayer.PlayerGui
+--// GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "UltimateFinderGui"
+gui.Parent = game.CoreGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0,280,0,330)
-frame.Position = UDim2.new(1,-300,0,60)
-frame.BackgroundColor3 = Color3.fromRGB(15,15,25)
+frame.Parent = gui
+frame.Size = UDim2.new(0,340,0,290)
+frame.Position = UDim2.new(0,20,0.5,-145)
+frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 frame.BorderSizePixel = 0
-frame.Parent = sg
 
--- ==================== TITULO ====================
+Instance.new("UICorner",frame)
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1,0,0,40)
-title.BackgroundColor3 = Color3.fromRGB(0,120,255)
-title.Text = "🔎 SECRET HOPPER"
-title.TextColor3 = Color3.new(1,1,1)
-title.TextScaled = true
 title.Parent = frame
+title.Size = UDim2.new(1,0,0,40)
+title.BackgroundTransparency = 1
+title.Text = "30M+ ULTIMATE FINDER"
+title.TextScaled = true
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.SourceSansBold
 
--- ==================== INFO ====================
+local info = Instance.new("TextLabel")
+info.Parent = frame
+info.Size = UDim2.new(1,-20,0,140)
+info.Position = UDim2.new(0,10,0,50)
+info.BackgroundTransparency = 1
+info.TextWrapped = true
+info.TextYAlignment = Enum.TextYAlignment.Top
+info.TextScaled = true
+info.Font = Enum.Font.SourceSans
+info.TextColor3 = Color3.new(1,1,1)
+info.Text = "Escaneando servidor..."
 
-local serverInfo = Instance.new("TextLabel")
-serverInfo.Size = UDim2.new(1,0,0,30)
-serverInfo.Position = UDim2.new(0,0,0,40)
-serverInfo.BackgroundTransparency = 1
-serverInfo.TextColor3 = Color3.fromRGB(120,200,255)
-serverInfo.TextScaled = true
-serverInfo.Parent = frame
+--// TELEPORT BUTTON
+local tp = Instance.new("TextButton")
+tp.Parent = frame
+tp.Size = UDim2.new(0.8,0,0,35)
+tp.Position = UDim2.new(0.1,0,1,-90)
+tp.Text = "TELEPORT"
+tp.TextScaled = true
+tp.BackgroundColor3 = Color3.fromRGB(0,120,255)
+tp.TextColor3 = Color3.new(1,1,1)
 
-spawn(function()
+Instance.new("UICorner",tp)
 
-    while running do
+tp.MouseButton1Click:Connect(function()
 
-        serverInfo.Text = getServerInfo()
+    if targetPart
+    and LP.Character
+    and LP.Character:FindFirstChild("HumanoidRootPart") then
 
-        wait(3)
+        LP.Character.HumanoidRootPart.CFrame =
+            targetPart.CFrame + Vector3.new(0,5,0)
+
     end
 end)
 
--- ==================== STOP ====================
-
-local stopBtn = Instance.new("TextButton")
-stopBtn.Size = UDim2.new(0.9,0,0,40)
-stopBtn.Position = UDim2.new(0.05,0,0,80)
-stopBtn.BackgroundColor3 = Color3.fromRGB(200,0,0)
-stopBtn.Text = "⛔ Detener Hopper"
-stopBtn.TextColor3 = Color3.new(1,1,1)
-stopBtn.TextScaled = true
-stopBtn.Parent = frame
-
-stopBtn.MouseButton1Click:Connect(function()
-
-    running = false
-
-    notify(
-        "⛔ Detenido",
-        "El hopper fue detenido"
-    )
-end)
-
--- ==================== MINIMIZAR ====================
-
-local minimizeBtn = Instance.new("TextButton")
-minimizeBtn.Size = UDim2.new(0.9,0,0,40)
-minimizeBtn.Position = UDim2.new(0.05,0,0,130)
-minimizeBtn.BackgroundColor3 = Color3.fromRGB(255,140,0)
-minimizeBtn.Text = "⏬ Minimizar"
-minimizeBtn.TextColor3 = Color3.new(1,1,1)
-minimizeBtn.TextScaled = true
-minimizeBtn.Parent = frame
-
--- ==================== CAMBIAR SERVIDOR ====================
-
+--// AUTO HOP BUTTON
 local hopBtn = Instance.new("TextButton")
-hopBtn.Size = UDim2.new(0.9,0,0,40)
-hopBtn.Position = UDim2.new(0.05,0,0,180)
-hopBtn.BackgroundColor3 = Color3.fromRGB(0,90,255)
-hopBtn.Text = "🔄 Cambiar Servidor"
-hopBtn.TextColor3 = Color3.new(1,1,1)
-hopBtn.TextScaled = true
 hopBtn.Parent = frame
+hopBtn.Size = UDim2.new(0.8,0,0,35)
+hopBtn.Position = UDim2.new(0.1,0,1,-45)
+hopBtn.Text = "AUTO HOP : ON"
+hopBtn.TextScaled = true
+hopBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
+hopBtn.TextColor3 = Color3.new(1,1,1)
+
+Instance.new("UICorner",hopBtn)
 
 hopBtn.MouseButton1Click:Connect(function()
-    hopServer()
-end)
 
--- ==================== MINIMIZE SYSTEM ====================
+    AutoHop = not AutoHop
 
-local minimized = false
-
-minimizeBtn.MouseButton1Click:Connect(function()
-
-    minimized = not minimized
-
-    stopBtn.Visible = not minimized
-    hopBtn.Visible = not minimized
-    serverInfo.Visible = not minimized
-
-    if minimized then
-
-        frame.Size = UDim2.new(0,280,0,40)
-
-        minimizeBtn.Position = UDim2.new(0.05,0,0,0)
-        minimizeBtn.Text = "🔼 Abrir"
-
+    if AutoHop then
+        hopBtn.Text = "AUTO HOP : ON"
+        hopBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
     else
-
-        frame.Size = UDim2.new(0,280,0,330)
-
-        minimizeBtn.Position = UDim2.new(0.05,0,0,130)
-        minimizeBtn.Text = "⏬ Minimizar"
+        hopBtn.Text = "AUTO HOP : OFF"
+        hopBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
     end
 end)
 
--- ==================== DRAG MOBILE FIX ====================
-
-local dragging = false
+--// DRAG SYSTEM
+local dragging
 local dragInput
 local dragStart
 local startPos
@@ -431,10 +149,9 @@ local function update(input)
     )
 end
 
-frame.InputBegan:Connect(function(input)
+title.InputBegan:Connect(function(input)
 
-    if input.UserInputType == Enum.UserInputType.Touch
-    or input.UserInputType == Enum.UserInputType.MouseButton1 then
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
 
         dragging = true
         dragStart = input.Position
@@ -449,11 +166,9 @@ frame.InputBegan:Connect(function(input)
     end
 end)
 
-frame.InputChanged:Connect(function(input)
+title.InputChanged:Connect(function(input)
 
-    if input.UserInputType == Enum.UserInputType.Touch
-    or input.UserInputType == Enum.UserInputType.MouseMovement then
-
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
         dragInput = input
     end
 end)
@@ -465,14 +180,183 @@ UIS.InputChanged:Connect(function(input)
     end
 end)
 
--- ==================== NOTIFICACIONES ====================
+--// MONEY CONVERTER
+local function convert(text)
 
-notify(
-    "🚀 Hopper Activado",
-    "Buscando brainrots automáticamente"
-)
+    local num, letter =
+        string.match(text,"%$(%d+%.?%d*)([KMB])/s")
 
-notify(
-    "Servidor Actual",
-    getServerInfo()
-)
+    if not num then
+        return nil
+    end
+
+    num = tonumber(num)
+
+    if letter == "K" then
+        num = num * 1e3
+    elseif letter == "M" then
+        num = num * 1e6
+    elseif letter == "B" then
+        num = num * 1e9
+    end
+
+    return num
+end
+
+--// ESP
+local function createESP(model)
+
+    if model:FindFirstChild("FinderESP") then
+        return
+    end
+
+    local h = Instance.new("Highlight")
+    h.Name = "FinderESP"
+    h.FillColor = Color3.fromRGB(255,0,0)
+    h.OutlineColor = Color3.fromRGB(255,255,255)
+    h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    h.Parent = model
+end
+
+--// SERVER HOP
+local function ServerHop()
+
+    if not AutoHop then
+        return
+    end
+
+    info.Text = "Buscando nuevo servidor..."
+
+    local success, result = pcall(function()
+
+        return game:HttpGet(
+            "https://games.roblox.com/v1/games/"..
+            PlaceId..
+            "/servers/Public?sortOrder=Asc&limit=100"
+        )
+    end)
+
+    if not success then
+        return
+    end
+
+    local data = HttpService:JSONDecode(result)
+
+    for _,server in pairs(data.data) do
+
+        if server.playing < server.maxPlayers
+        and not getgenv().VisitedServers[server.id] then
+
+            getgenv().VisitedServers[server.id] = true
+
+            info.Text =
+                "Entrando a nuevo servidor..."
+
+            task.wait(2)
+
+            TeleportService:TeleportToPlaceInstance(
+                PlaceId,
+                server.id,
+                LP
+            )
+
+            break
+        end
+    end
+end
+
+--// MAIN SCAN
+task.spawn(function()
+
+    while task.wait(SCAN_DELAY) do
+
+        local bestValue = 0
+        local bestText = ""
+        local bestModel = nil
+
+        for _,v in pairs(workspace:GetDescendants()) do
+
+            if v:IsA("TextLabel") then
+
+                local txt = v.Text
+                local value = convert(txt)
+
+                if value and value >= MIN_VALUE then
+
+                    if value > bestValue then
+
+                        bestValue = value
+                        bestText = txt
+
+                        local model =
+                            v:FindFirstAncestorOfClass("Model")
+
+                        if model then
+                            bestModel = model
+                        end
+                    end
+                end
+            end
+        end
+
+        --// TARGET FOUND
+        if bestValue > 0 and bestModel then
+
+            targetFound = true
+            currentTarget = bestModel
+
+            createESP(bestModel)
+
+            targetPart =
+                bestModel.PrimaryPart
+                or bestModel:FindFirstChildWhichIsA("BasePart")
+
+            info.Text =
+                "ENCONTRADO!\n\n"..
+                "DINERO : "..bestText.."\n"..
+                "MODELO : "..bestModel.Name.."\n\n"..
+                "Esperando..."
+
+        else
+
+            --// TARGET LOST
+            if targetFound then
+
+                targetFound = false
+                currentTarget = nil
+                targetPart = nil
+
+                info.Text =
+                    "TARGET PERDIDO\n\n"..
+                    "Rebuscando en "..LOST_WAIT.." segundos..."
+
+                task.wait(LOST_WAIT)
+            end
+
+            --// STILL NOTHING
+            local foundAgain = false
+
+            for _,v in pairs(workspace:GetDescendants()) do
+
+                if v:IsA("TextLabel") then
+
+                    local value = convert(v.Text)
+
+                    if value and value >= MIN_VALUE then
+                        foundAgain = true
+                        break
+                    end
+                end
+            end
+
+            if not foundAgain then
+
+                info.Text =
+                    "Nada encontrado arriba de 30M/s\n\n"..
+                    "Cambiando servidor..."
+
+                ServerHop()
+            end
+        end
+    end
+end)
