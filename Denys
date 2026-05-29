@@ -1,464 +1,132 @@
---// DENYS SECRET FINDER
---// AUTO EXECUTE + SERVER HOP + BUTTONS + MOBILE
-
-if getgenv().BrainrotAutoLoaded then
-    return
-end
-getgenv().BrainrotAutoLoaded = true
-
---// AUTO EXECUTE
-
-local SCRIPT_URL =
-"https://raw.githubusercontent.com/jesusvc194-jpg/script.lua/refs/heads/main/Denys"
-
-local REEXECUTE =
-'loadstring(game:HttpGet("'..SCRIPT_URL..'"))()'
-
-pcall(function()
-
-    if syn and syn.queue_on_teleport then
-        syn.queue_on_teleport(REEXECUTE)
-    end
-
-    if queue_on_teleport then
-        queue_on_teleport(REEXECUTE)
-    end
-
-    if fluxus and fluxus.queue_on_teleport then
-        fluxus.queue_on_teleport(REEXECUTE)
-    end
-
-end)
-
-repeat task.wait() until game:IsLoaded()
-
-local Players = game:GetService("Players")
+-- === SERVER HOPPER AVANZADO + DETECCIÓN DE SERVIDOR ACTUAL ===
 local TeleportService = game:GetService("TeleportService")
-local HttpService = game:GetService("HttpService")
-local StarterGui = game:GetService("StarterGui")
-local CoreGui = game:GetService("CoreGui")
-
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
-local PlaceID = game.PlaceId
-local JobID = game.JobId
 
---// VALID BRAINROTS
+local PLACE_ID = game.PlaceId
+local running = true
+local found = false
 
-local ValidNames = {
+print("🔍 Server Hopper con detección de servidor activado")
 
-    ["spyderinis"] = true,
-    ["extinct tralalero"] = true,
-    ["los spyderrinis"] = true,
-    ["fragola la la la"] = true,
-    ["la cucaracha"] = true,
-    ["los tralaleritos"] = true,
-    ["los tortus"] = true,
-    ["guerriro digitale"] = true,
-    ["yess my examine"] = true,
-    ["extinct matteo"] = true,
-    ["las tralaleritas"] = true,
-    ["la karkerkar combinasion"] = true,
-    ["job job job sahur"] = true,
-    ["karker sahur"] = true,
-    ["las vaquitas saturnitas"] = true,
-    ["graipuss medussi"] = true,
-    ["perrito burrito"] = true,
-    ["nooo my hotspot"] = true,
-    ["los jobcitos"] = true,
-    ["noo my examine"] = true,
-    ["la sahur combinasion"] = true,
-    ["to to to sahur"] = true,
-    ["karkerkar kurkur"] = true,
-    ["pot hotspot"] = true,
-    ["quesadilla crocodila"] = true,
-    ["chicleteira bicicleteira"] = true,
-    ["los noo my hotspotsitos"] = true,
-    ["los nooo my hotspotsitos"] = true,
-    ["los chicleteiras"] = true,
-    ["67"] = true,
-    ["la grande combinasion"] = true,
-    ["mariachi corazoni"] = true,
-    ["nuclearo dinossauro"] = true,
-    ["tacorita bicicleta"] = true,
-    ["las sis"] = true,
-    ["los hotspotsitos"] = true,
-    ["money money puggy"] = true,
-    ["celularcini viciosini"] = true,
-    ["los 67"] = true,
-    ["la extinct grande"] = true,
-    ["los bros"] = true,
-    ["tralaledon"] = true,
-    ["esok sekolah"] = true,
-    ["los primos"] = true,
-    ["los tacoritas"] = true,
-    ["tang tang kelentang"] = true,
-    ["ketupat kepat"] = true,
-    ["tictac sahur"] = true,
-    ["la supreme combinasion"] = true,
-    ["ketchuru and musturu"] = true,
-    ["garama and madundung"] = true,
-    ["spaghetti tualetti"] = true,
-    ["los combinasionas"] = true,
-    ["dragon cannelloni"] = true,
-    ["la combinasion"] = true,
-    ["burguro and fryuro"] = true,
-    ["chillin chili"] = true,
-    ["strawberry elephant"] = true,
-    ["kings coleslaw"] = true,
-    ["developini braziliaspidini"] = true
+local function notify(title, text)
+    game.StarterGui:SetCore("SendNotification", {Title = title, Text = text, Duration = 8})
+end
+
+-- Lista de detección (con errores comunes)
+local keywords = {
+    "secret", "secreto", "67", "bunitos", "bonitos", "spyderrinis", "tralalero", 
+    "fragola", "cucaracha", "tralaleritos", "tortus", "guerriro", "examine", 
+    "matteo", "karkerkar", "sahur", "vaquitas", "perrito", "hotspot", "jobcitos",
+    "combinasion", "mariachi", "nuclearo", "tacorita", "hotspotsitos", "puggy",
+    "celularcini", "bros", "tralaledon", "primos", "tictac", "ketchuru", "garama",
+    "spaghetti", "dragon", "burguro", "chillin", "strawberry", "developini"
 }
 
-local ValidRarities = {
-    ["secret"] = true,
-    ["god"] = true,
-    ["mythic"] = true,
-    ["omega"] = true,
-    ["void"] = true
-}
-
---// SERVER BLACKLIST
-
-local FILE = "VisitedServers.json"
-
-local visited = {}
-
-pcall(function()
-
-    if isfile(FILE) then
-        visited = HttpService:JSONDecode(readfile(FILE))
-    end
-end)
-
-visited[JobID] = true
-
-pcall(function()
-
-    writefile(
-        FILE,
-        HttpService:JSONEncode(visited)
-    )
-end)
-
---// GUI
-
-local gui = Instance.new("ScreenGui")
-gui.Name = "DenysFinder"
-gui.ResetOnSpawn = false
-gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-pcall(function()
-    gui.Parent = CoreGui
-end)
-
-if not gui.Parent then
-    gui.Parent = LocalPlayer.PlayerGui
-end
-
-local main = Instance.new("Frame")
-main.Parent = gui
-main.Size = UDim2.new(0,230,0,155)
-main.Position = UDim2.new(0.72,0,0.02,0)
-main.BackgroundColor3 = Color3.fromRGB(15,15,15)
-main.BorderSizePixel = 0
-main.Active = true
-main.Draggable = true
-
-Instance.new("UICorner",main).CornerRadius = UDim.new(0,12)
-
-local title = Instance.new("TextLabel")
-title.Parent = main
-title.Size = UDim2.new(1,0,0,28)
-title.BackgroundTransparency = 1
-title.Text = "🔥 DENYS FINDER"
-title.TextColor3 = Color3.fromRGB(255,170,0)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 15
-
-local status = Instance.new("TextLabel")
-status.Parent = main
-status.Size = UDim2.new(1,0,0,24)
-status.Position = UDim2.new(0,0,0,28)
-status.BackgroundTransparency = 1
-status.Text = "🔍 Searching..."
-status.TextColor3 = Color3.new(1,1,1)
-status.Font = Enum.Font.GothamBold
-status.TextScaled = true
-
-local log = Instance.new("TextLabel")
-log.Parent = main
-log.Size = UDim2.new(1,-10,1,-65)
-log.Position = UDim2.new(0,5,0,55)
-log.BackgroundTransparency = 1
-log.Text = "[SYSTEM]\nWaiting..."
-log.TextColor3 = Color3.fromRGB(255,170,0)
-log.Font = Enum.Font.Code
-log.TextSize = 12
-log.TextWrapped = true
-log.TextXAlignment = Enum.TextXAlignment.Left
-log.TextYAlignment = Enum.TextYAlignment.Top
-
---// BUTTONS
-
-local buttons = Instance.new("Frame")
-buttons.Parent = main
-buttons.Size = UDim2.new(1,-10,0,32)
-buttons.Position = UDim2.new(0,5,1,-37)
-buttons.BackgroundTransparency = 1
-
-local layout = Instance.new("UIListLayout")
-layout.Parent = buttons
-layout.FillDirection = Enum.FillDirection.Horizontal
-layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-layout.Padding = UDim.new(0,6)
-
-local function CreateButton(text,color)
-
-    local b = Instance.new("TextButton")
-
-    b.Size = UDim2.new(0,65,1,0)
-    b.BackgroundColor3 = color
-    b.Text = text
-    b.TextColor3 = Color3.new(1,1,1)
-    b.Font = Enum.Font.GothamBold
-    b.TextScaled = true
-    b.Parent = buttons
-
-    Instance.new("UICorner",b).CornerRadius = UDim.new(0,8)
-
-    return b
-end
-
-local stopBtn =
-    CreateButton("STOP",Color3.fromRGB(170,0,0))
-
-local hopBtn =
-    CreateButton("HOP",Color3.fromRGB(0,120,255))
-
-local miniBtn =
-    CreateButton("-",Color3.fromRGB(80,80,80))
-
---// BUTTON FUNCTIONS
-
-local stopped = false
-
-stopBtn.MouseButton1Click:Connect(function()
-
-    stopped = not stopped
-
-    if stopped then
-        status.Text = "⛔ STOPPED"
-        stopBtn.Text = "START"
-    else
-        status.Text = "🔍 Searching..."
-        stopBtn.Text = "STOP"
-    end
-end)
-
-local minimized = false
-
-miniBtn.MouseButton1Click:Connect(function()
-
-    minimized = not minimized
-
-    if minimized then
-
-        log.Visible = false
-        buttons.Visible = false
-
-        main.Size = UDim2.new(0,230,0,55)
-
-    else
-
-        log.Visible = true
-        buttons.Visible = true
-
-        main.Size = UDim2.new(0,230,0,155)
-    end
-end)
-
---// CLEAN TEXT
-
-local function CleanText(text)
-
-    text = text:lower()
-    text = text:gsub("%s+"," ")
-    text = text:gsub("[^%w%s]","")
-
-    return text
-end
-
---// DETECTOR
-
-local function IsValidBrainrot(model)
-
-    if not model:IsA("Model") then
-        return false
-    end
-
-    if not model:FindFirstChild("Humanoid")
-    and not model:FindFirstChild("HumanoidRootPart")
-    and not model.PrimaryPart then
-        return false
-    end
-
-    local foundName = nil
-    local foundRare = false
-
-    for _,v in ipairs(model:GetDescendants()) do
-
-        if v:IsA("TextLabel") then
-
-            local text = CleanText(v.Text)
-
-            for name,_ in pairs(ValidNames) do
-
-                if string.find(text,name) then
-                    foundName = name
-                end
-            end
-
-            for rare,_ in pairs(ValidRarities) do
-
-                if string.find(text,rare) then
-                    foundRare = true
+local function checkForSecret()
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if obj:IsA("Model") or obj:IsA("Part") or obj:IsA("MeshPart") then
+            local name = obj.Name:lower()
+            for _, word in ipairs(keywords) do
+                if name:find(word) then
+                    found = true
+                    notify("🎉 ¡SECRET ENCONTRADO!", "Nombre: " .. obj.Name)
+                    print("✅ ENCONTRADO: " .. obj.Name)
+                    return true
                 end
             end
         end
     end
-
-    if foundName and foundRare then
-        return true, foundName
-    end
-
     return false
 end
 
---// SERVER HOP
-
-local hopping = false
-
-local function ServerHop()
-
-    if hopping then
-        return
-    end
-
-    hopping = true
-
-    local success,err = pcall(function()
-
-        log.Text = "[HOP]\nJoining New Server..."
-
-        local req =
-            game:HttpGet(
-                "https://games.roblox.com/v1/games/" ..
-                PlaceID ..
-                "/servers/Public?sortOrder=Asc&limit=100"
-            )
-
-        local data =
-            HttpService:JSONDecode(req)
-
-        for _,server in ipairs(data.data) do
-
-            if server.id ~= JobID
-            and server.playing < server.maxPlayers
-            and not visited[server.id] then
-
-                visited[server.id] = true
-
-                writefile(
-                    FILE,
-                    HttpService:JSONEncode(visited)
-                )
-
-                task.wait(1)
-
-                TeleportService:TeleportToPlaceInstance(
-                    PlaceID,
-                    server.id,
-                    LocalPlayer
-                )
-
-                return
-            end
-        end
-    end)
-
-    if not success then
-
-        log.Text =
-            "[ERROR]\n"..tostring(err)
-    end
-
-    hopping = false
+local function getServerInfo()
+    local serverId = game.JobId or "Desconocido"
+    local players = #Players:GetPlayers()
+    return "Servidor: " .. serverId:sub(1,8) .. "... | Jugadores: " .. players
 end
 
-hopBtn.MouseButton1Click:Connect(function()
-    ServerHop()
-end)
+local function hopServer()
+    if not running or found then return end
+    notify("🔄 Cambiando Servidor", getServerInfo())
+    wait(2)
+    TeleportService:Teleport(PLACE_ID, LocalPlayer)
+end
 
---// MAIN LOOP
-
-task.spawn(function()
-
-    while task.wait(8) do
-
-        if stopped then
-            continue
-        end
-
-        local found = {}
-
-        for _,v in ipairs(workspace:GetChildren()) do
-
-            pcall(function()
-
-                local valid,name =
-                    IsValidBrainrot(v)
-
-                if valid and name then
-                    found[name] = true
-                end
-            end)
-        end
-
-        local names = {}
-
-        for name,_ in pairs(found) do
-            table.insert(names,name)
-        end
-
-        if #names > 0 then
-
-            status.Text = "🔥 SECRET FOUND"
-
-            log.Text =
-                "[FOUND]\n\n" ..
-                table.concat(names,"\n")
-
-            pcall(function()
-
-                StarterGui:SetCore(
-                    "SendNotification",
-                    {
-                        Title = "SECRET FOUND",
-                        Text = table.concat(names,", "),
-                        Duration = 10
-                    }
-                )
-            end)
-
-        else
-
-            status.Text = "🔍 Searching..."
-
-            log.Text =
-                "[SCAN]\nNo Secret Found"
-
-            ServerHop()
-        end
+-- Loop principal
+spawn(function()
+    while running and not found do
+        wait(4)
+        if checkForSecret() then break end
+        hopServer()
+        wait(9)
     end
 end)
 
-print("DENYS FINDER LOADED")
+-- ==================== GUI ====================
+local sg = Instance.new("ScreenGui")
+sg.Name = "SecretHopper"
+sg.ResetOnSpawn = false
+sg.Parent = LocalPlayer.PlayerGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 280, 0, 220)
+frame.Position = UDim2.new(1, -300, 0, 60)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+frame.Parent = sg
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,40)
+title.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+title.Text = "🔍 SECRET HOPPER"
+title.TextColor3 = Color3.new(1,1,1)
+title.TextScaled = true
+title.Parent = frame
+
+local serverInfo = Instance.new("TextLabel")
+serverInfo.Size = UDim2.new(1,0,0,30)
+serverInfo.Position = UDim2.new(0,0,0,40)
+serverInfo.BackgroundTransparency = 1
+serverInfo.TextColor3 = Color3.fromRGB(100, 200, 255)
+serverInfo.TextScaled = true
+serverInfo.Parent = frame
+
+spawn(function()
+    while running do
+        serverInfo.Text = getServerInfo()
+        wait(3)
+    end
+end)
+
+-- Botones
+local stopBtn = Instance.new("TextButton")
+stopBtn.Size = UDim2.new(0.9,0,0,40)
+stopBtn.Position = UDim2.new(0.05,0,0,80)
+stopBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+stopBtn.Text = "⛔ Detener Hopper"
+stopBtn.TextColor3 = Color3.new(1,1,1)
+stopBtn.TextScaled = true
+stopBtn.Parent = frame
+
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Size = UDim2.new(0.9,0,0,40)
+minimizeBtn.Position = UDim2.new(0.05,0,0,130)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
+minimizeBtn.Text = "⏬ Minimizar"
+minimizeBtn.TextColor3 = Color3.new(1,1,1)
+minimizeBtn.TextScaled = true
+minimizeBtn.Parent = frame
+
+stopBtn.MouseButton1Click:Connect(function()
+    running = false
+    notify("⛔ Detenido", "El hopper se ha detenido")
+end)
+
+minimizeBtn.MouseButton1Click:Connect(function()
+    frame.Visible = not frame.Visible
+    minimizeBtn.Text = frame.Visible and "⏬ Minimizar" or "🔼 Mostrar"
+end)
+
+notify("🚀 Hopper Activado", "Buscando Secret + Bunitos y más")
+notify("Servidor Actual", getServerInfo())
