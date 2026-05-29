@@ -1,9 +1,10 @@
--- === SERVER HOPPER AVANZADO + BLACKLIST + SERVIDORES PEQUEÑOS ===
+--// SECRET HOPPER ULTIMATE
 
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local HttpService = game:GetService("HttpService")
+local UIS = game:GetService("UserInputService")
 
 local LocalPlayer = Players.LocalPlayer
 local PLACE_ID = game.PlaceId
@@ -11,11 +12,12 @@ local PLACE_ID = game.PlaceId
 local running = true
 local found = false
 
--- Lista negra de servidores visitados
+-- ==================== BLACKLIST ====================
+
 local visitedServers = {}
 visitedServers[game.JobId] = true
 
-print("🔍 Server Hopper Inteligente Activado")
+-- ==================== NOTIFY ====================
 
 local function notify(title, text)
     pcall(function()
@@ -27,52 +29,111 @@ local function notify(title, text)
     end)
 end
 
+print("🔍 SECRET HOPPER ACTIVADO")
+
 -- ==================== KEYWORDS ====================
 
 local keywords = {
-    "secret","spyderinis","extinct tralalero","los spyderrinis",
-    "fragola la la la","la cucaracha","los tralaleritos",
-    "los tortus","guerriro digitale","yess my examine",
-    "extinct matteo","las tralaleritas","la karkerkar combinasion",
-    "job job job sahur","karker sahur","las vaquitas saturnitas",
-    "graipuss medussi","perrito burrito","nooo my hotspot",
-    "los jobcitos","noo my examine","la sahur combinasion",
-    "to to to sahur","karkerkar kurkur","pot hotspot",
-    "quesadilla crocodila","chicleteira bicicleteira",
-    "los noo my hotspotsitos","los nooo my hotspotsitos",
-    "los chicleteiras","67","la grande combinasion",
-    "mariachi corazoni","nuclearo dinossauro",
-    "tacorita bicicleta","las sis","los hotspotsitos",
-    "money money puggy","celularcini viciosini",
-    "los 61","la extinct grande","los bros",
-    "tralaledon","esok sekolah","los primos",
-    "los tacoritas","tang tang kelentang",
-    "ketupat kepat","tictac sahur",
-    "la supreme combinasion","ketchuru and musturu",
-    "garama and madundung","spaghetti tualetti",
-    "los combinasionas","dragon cannelloni",
-    "la combinasion","burguro and fryuro",
-    "chillin chili","strawberry elephant",
-    "kings coleslaw","developini braziliaspidini"
+    "secret",
+    "67",
+    "spyderinis",
+    "extinct tralalero",
+    "fragola",
+    "la cucaracha",
+    "los tralaleritos",
+    "los tortus",
+    "guerriro digitale",
+    "matteo",
+    "karkerkar",
+    "job sahur",
+    "vaquitas",
+    "perrito burrito",
+    "hotspot",
+    "combinasion",
+    "mariachi",
+    "nuclearo",
+    "tacorita",
+    "money money puggy",
+    "celularcini",
+    "tralaledon",
+    "los primos",
+    "tictac sahur",
+    "spaghetti",
+    "dragon cannelloni",
+    "burguro",
+    "chillin chili",
+    "strawberry elephant",
+    "developini"
 }
+
+-- ==================== UUID FILTER ====================
+
+local function isUUID(str)
+    return str:match("%x%x%x%x%x%x%x%x%-%x%x%x%x")
+end
 
 -- ==================== DETECCIÓN ====================
 
 local function checkForSecret()
+
     for _, obj in pairs(Workspace:GetDescendants()) do
-        if obj:IsA("Model") or obj:IsA("Part") or obj:IsA("MeshPart") then
+
+        -- SOLO MODELOS
+        if obj:IsA("Model") then
+
             local name = obj.Name:lower()
 
+            -- Ignora UUIDs
+            if isUUID(name) then
+                continue
+            end
+
+            -- Ignora jugadores
+            if Players:FindFirstChild(obj.Name) then
+                continue
+            end
+
+            -- Ignora modelos vacíos
+            if #obj:GetDescendants() < 3 then
+                continue
+            end
+
+            -- Buscar keywords
             for _, word in ipairs(keywords) do
+
                 if name:find(word) then
+
                     found = true
 
                     notify(
                         "🎉 ¡SECRET ENCONTRADO!",
-                        "Nombre: " .. obj.Name
+                        "Brainrot: " .. obj.Name
                     )
 
-                    print("✅ ENCONTRADO: " .. obj.Name)
+                    print("✅ BRAINROT DETECTADO:", obj.Name)
+
+                    return true
+                end
+            end
+        end
+
+        -- DETECCIÓN DE TEXTOS GUI
+        if obj:IsA("TextLabel") then
+
+            local txt = obj.Text:lower()
+
+            for _, word in ipairs(keywords) do
+
+                if txt:find(word) then
+
+                    found = true
+
+                    notify(
+                        "🎉 SECRET DETECTADO!",
+                        obj.Text
+                    )
+
+                    print("✅ TEXTO DETECTADO:", obj.Text)
 
                     return true
                 end
@@ -83,9 +144,10 @@ local function checkForSecret()
     return false
 end
 
--- ==================== INFO ====================
+-- ==================== INFO SERVIDOR ====================
 
 local function getServerInfo()
+
     local serverId = game.JobId or "Desconocido"
     local players = #Players:GetPlayers()
 
@@ -95,30 +157,21 @@ local function getServerInfo()
         .. players
 end
 
--- ==================== SERVER HOP NORMAL ====================
-
-local function hopServer()
-    if not running or found then
-        return
-    end
-
-    notify("🔄 Cambiando Servidor", getServerInfo())
-
-    wait(2)
-
-    TeleportService:Teleport(PLACE_ID, LocalPlayer)
-end
-
--- ==================== SERVER HOP INTELIGENTE ====================
+-- ==================== SERVER HOP ====================
 
 local function hopLowPlayerServer()
+
     if not running or found then
         return
     end
 
-    notify("🔍 Buscando", "Servidor con máximo 4 jugadores")
+    notify(
+        "🔍 Buscando",
+        "Servidor con máximo 4 jugadores"
+    )
 
     local success, result = pcall(function()
+
         return game:HttpGet(
             "https://games.roblox.com/v1/games/"
             .. PLACE_ID
@@ -127,7 +180,12 @@ local function hopLowPlayerServer()
     end)
 
     if not success then
-        notify("❌ Error", "No se pudo obtener servidores")
+
+        notify(
+            "❌ Error",
+            "No se pudo obtener servidores"
+        )
+
         return
     end
 
@@ -138,7 +196,6 @@ local function hopLowPlayerServer()
         local id = server.id
         local playing = server.playing
 
-        -- Evita servidores repetidos
         if not visitedServers[id]
         and id ~= game.JobId
         and playing <= 4 then
@@ -162,10 +219,13 @@ local function hopLowPlayerServer()
         end
     end
 
-    notify("⚠️ No Encontrado", "No hay servidores pequeños nuevos")
+    notify(
+        "⚠️ No Encontrado",
+        "No hay servidores nuevos"
+    )
 end
 
--- ==================== LOOP PRINCIPAL ====================
+-- ==================== LOOP ====================
 
 spawn(function()
 
@@ -191,17 +251,18 @@ sg.ResetOnSpawn = false
 sg.Parent = LocalPlayer.PlayerGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 280, 0, 280)
-frame.Position = UDim2.new(1, -300, 0, 60)
-frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+frame.Size = UDim2.new(0,280,0,330)
+frame.Position = UDim2.new(1,-300,0,60)
+frame.BackgroundColor3 = Color3.fromRGB(15,15,25)
+frame.BorderSizePixel = 0
 frame.Parent = sg
 
 -- ==================== TITULO ====================
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1,0,0,40)
-title.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
-title.Text = "🔍 SECRET HOPPER"
+title.BackgroundColor3 = Color3.fromRGB(0,120,255)
+title.Text = "🔎 SECRET HOPPER"
 title.TextColor3 = Color3.new(1,1,1)
 title.TextScaled = true
 title.Parent = frame
@@ -212,73 +273,58 @@ local serverInfo = Instance.new("TextLabel")
 serverInfo.Size = UDim2.new(1,0,0,30)
 serverInfo.Position = UDim2.new(0,0,0,40)
 serverInfo.BackgroundTransparency = 1
-serverInfo.TextColor3 = Color3.fromRGB(100, 200, 255)
+serverInfo.TextColor3 = Color3.fromRGB(120,200,255)
 serverInfo.TextScaled = true
 serverInfo.Parent = frame
 
 spawn(function()
+
     while running do
+
         serverInfo.Text = getServerInfo()
+
         wait(3)
     end
 end)
 
--- ==================== BOTÓN STOP ====================
+-- ==================== STOP ====================
 
 local stopBtn = Instance.new("TextButton")
 stopBtn.Size = UDim2.new(0.9,0,0,40)
 stopBtn.Position = UDim2.new(0.05,0,0,80)
-stopBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+stopBtn.BackgroundColor3 = Color3.fromRGB(200,0,0)
 stopBtn.Text = "⛔ Detener Hopper"
 stopBtn.TextColor3 = Color3.new(1,1,1)
 stopBtn.TextScaled = true
 stopBtn.Parent = frame
 
 stopBtn.MouseButton1Click:Connect(function()
+
     running = false
 
     notify(
         "⛔ Detenido",
-        "El hopper se ha detenido"
+        "El hopper fue detenido"
     )
 end)
 
--- ==================== BOTÓN MINIMIZAR ====================
-
-local minimized = false
+-- ==================== MINIMIZAR ====================
 
 local minimizeBtn = Instance.new("TextButton")
 minimizeBtn.Size = UDim2.new(0.9,0,0,40)
 minimizeBtn.Position = UDim2.new(0.05,0,0,130)
-minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(255,140,0)
 minimizeBtn.Text = "⏬ Minimizar"
 minimizeBtn.TextColor3 = Color3.new(1,1,1)
 minimizeBtn.TextScaled = true
 minimizeBtn.Parent = frame
 
-minimizeBtn.MouseButton1Click:Connect(function()
-
-    minimized = not minimized
-
-    stopBtn.Visible = not minimized
-    lowBtn.Visible = not minimized
-    serverInfo.Visible = not minimized
-
-    if minimized then
-        frame.Size = UDim2.new(0,280,0,50)
-        minimizeBtn.Text = "🔼 Mostrar"
-    else
-        frame.Size = UDim2.new(0,280,0,280)
-        minimizeBtn.Text = "⏬ Minimizar"
-    end
-end)
-
--- ==================== BOTÓN SERVIDORES PEQUEÑOS ====================
+-- ==================== SERVIDORES PEQUEÑOS ====================
 
 local lowBtn = Instance.new("TextButton")
 lowBtn.Size = UDim2.new(0.9,0,0,40)
 lowBtn.Position = UDim2.new(0.05,0,0,180)
-lowBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 120)
+lowBtn.BackgroundColor3 = Color3.fromRGB(0,170,120)
 lowBtn.Text = "👥 Buscar 4 Jugadores"
 lowBtn.TextColor3 = Color3.new(1,1,1)
 lowBtn.TextScaled = true
@@ -288,9 +334,51 @@ lowBtn.MouseButton1Click:Connect(function()
     hopLowPlayerServer()
 end)
 
--- ==================== AUTO DRAG ====================
+-- ==================== CAMBIAR SERVIDOR ====================
 
-local UIS = game:GetService("UserInputService")
+local hopBtn = Instance.new("TextButton")
+hopBtn.Size = UDim2.new(0.9,0,0,40)
+hopBtn.Position = UDim2.new(0.05,0,0,230)
+hopBtn.BackgroundColor3 = Color3.fromRGB(0,90,255)
+hopBtn.Text = "🔄 Cambiar Servidor"
+hopBtn.TextColor3 = Color3.new(1,1,1)
+hopBtn.TextScaled = true
+hopBtn.Parent = frame
+
+hopBtn.MouseButton1Click:Connect(function()
+    hopLowPlayerServer()
+end)
+
+-- ==================== MINIMIZE SYSTEM ====================
+
+local minimized = false
+
+minimizeBtn.MouseButton1Click:Connect(function()
+
+    minimized = not minimized
+
+    stopBtn.Visible = not minimized
+    lowBtn.Visible = not minimized
+    hopBtn.Visible = not minimized
+    serverInfo.Visible = not minimized
+
+    if minimized then
+
+        frame.Size = UDim2.new(0,280,0,40)
+
+        minimizeBtn.Position = UDim2.new(0.05,0,0,0)
+        minimizeBtn.Text = "🔼 Abrir"
+
+    else
+
+        frame.Size = UDim2.new(0,280,0,330)
+
+        minimizeBtn.Position = UDim2.new(0.05,0,0,130)
+        minimizeBtn.Text = "⏬ Minimizar"
+    end
+end)
+
+-- ==================== DRAG SYSTEM ====================
 
 local dragging
 local dragInput
@@ -298,6 +386,7 @@ local dragStart
 local startPos
 
 local function update(input)
+
     local delta = input.Position - dragStart
 
     frame.Position = UDim2.new(
@@ -317,6 +406,7 @@ frame.InputBegan:Connect(function(input)
         startPos = frame.Position
 
         input.Changed:Connect(function()
+
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
             end
@@ -342,7 +432,7 @@ end)
 
 notify(
     "🚀 Hopper Activado",
-    "Buscando secrets automáticamente"
+    "Buscando brainrots automáticamente"
 )
 
 notify(
